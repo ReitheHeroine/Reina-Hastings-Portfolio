@@ -1,0 +1,502 @@
+---
+title: 'BIOL606_Midterm_3_Hastings'
+output: html_document
+date: '2025-05-01'
+---
+
+```{r setup, message=FALSE, warning=FALSE, results='hide'}
+rm(list=ls()) # Clear environment.
+
+# Load libraries.
+  library(ggplot2)
+  library(ggpubr)
+  library(rlang)
+  library(readxl)
+  library(dplyr)
+  library(tidyr)
+  library(purrr)
+  library(broom)
+  library(vegan)
+  library(skimr)
+  library(ggrepel)
+  library(scales)
+  library(diptest)
+  library(moments)
+  library(nortest)
+  library(MASS)
+  library(conflicted)
+  library(GGally)
+
+conflict_prefer('select', 'dplyr')
+conflict_prefer('filter', 'dplyr')
+```
+
+### Custom Functions
+Define custom functions to generate violin plots, count outliers, and assess normality in proteins of interest.
+
+#### violin_function
+This function creates a violin plot with jittered data points, mean markers, and significance asterisks.'
+
+``` {r violin_function}
+# Get a list of packages actually used in the Rmd file
+# Creates a violin plot with jittered data points and significance asterisks.
+make_violin_plot <- function(data, x_var, y_var, fill_color = 'green', test_method = 'anova') {
+
+  # Convert input variable names to symbols.
+  x_sym <- sym(x_var)
+  y_sym <- sym(y_var)
+  
+  # Calculate p-values and print them.
+  test_results <- compare_means(as.formula(paste(y_var, '~', x_var)), data = data, method = test_method)
+  print(test_results)
+
+  # Build and return the violin plot.
+  ggplot(data, aes(x = !!x_sym, y = !!y_sym)) +
+    geom_violin(fill = fill_color, alpha = 0.6) +
+    geom_jitter(width = 0.2, alpha = 0.4) + # Individual points with jitter to avoid overlap.
+    stat_summary(fun = mean, geom = 'point', shape = 18, size = 3, color = 'red') +
+    stat_compare_means(method = test_method, label = 'p.signif', size = 4, label.y.npc = 'top') + # Statistical comparison asterisks.
+    ggtitle(paste0(y_var, ' across ', x_var))
+}
+```
+
+#### outlier_function
+This function identifies and counts outliers in a specified column based on the interquartile range (IQR) method, printing both the total count and the unique IDs of the outliers.
+
+``` {r outlier_function}
+# Count outliers using IQR (inter-quartile range).
+count_outliers_iqr <- function(data, column, id_col = 'MouseID') {
+  # Define outliers.
+  Q1 <- quantile(data[[column]], 0.25, na.rm = TRUE)
+  Q3 <- quantile(data[[column]], 0.75, na.rm = TRUE)
+  IQR_value <- Q3 - Q1
+  
+  lower_bound <- Q1 - 1.5 * IQR_value
+  upper_bound <- Q3 + 1.5 * IQR_value
+  
+  # Create data frame of outliers.
+  outliers <- data[data[[column]] < lower_bound | data[[column]] > upper_bound, , drop = FALSE]
+  
+  # Count outliers.
+  num_outliers <- sum(data[[column]] < lower_bound | data[[column]] > upper_bound, na.rm = TRUE)
+  
+  # Extract MouseIDs of the outliers.
+  outlier_ids <- outliers[[id_col]]
+  
+  print(paste('There are', num_outliers, 'outliers in the', column, 'column of the ', deparse(substitute(data)), 'dataset.'))
+  
+  cat('MouseIDs of outliers:\n')
+  print(outlier_ids)
+}
+```
+
+#### assess_normality
+This function visually and statistically evaluates the normality of a specified variable by generating a histogram and Q-Q plot for intuitive assessment.
+
+``` {r assess_normality}
+# Visually and statistically assesses the normality of a transformed variable.
+assess_normality <- function(data, var_name, plot_title) {
+  
+  # Convert string to symbol for ggplot.
+  var_sym <- rlang::sym(var_name)
+
+  # Histogram of the transformed variable.
+  hist_plot <- ggplot(data, aes(x = !!var_sym)) +
+    geom_histogram(bins = 30, fill = 'blue', color = 'black') +
+    theme_minimal() +
+    labs(title = plot_title, x = var_name, y = 'Count')
+  
+  print(hist_plot)
+
+  # Q-Q plot.
+  qqnorm(data[[var_name]], main = paste0('Q-Q Plot of ', var_name))
+  qqline(data[[var_name]])
+}
+```
+
+### Load Data
+
+``` {r load_data}
+# Load in mouse protein expression data set.
+mouse <- read_excel('Data_Cortex_Nuclear.xls')
+
+# Rename class column as to not confuse R.
+mouse <- mouse %>% rename(Class = class)
+
+# Convert categorical variables to factors.
+mouse <- mouse %>%
+  mutate(across(c(Genotype, Treatment, Behavior, Class), as.factor))
+
+# Get all protein columns (those ending in '_N').
+protein_cols <- grep('_N$', names(mouse), value = TRUE)
+
+# Subset the data to include only MouseID, protein expression values, and group variables (remove NAs).
+mouse <- mouse %>%
+  select(MouseID, all_of(c(protein_cols, 'Genotype', 'Treatment', 'Behavior'))) %>%
+  drop_na()
+
+# Remove all rows where MouseID contains '3429'.
+mouse <- mouse %>%
+  filter(!grepl('^3429', MouseID))
+
+# Write out mouse data frame to csv.
+write.csv(mouse, 'mouse.csv', row.names = FALSE)
+```
+
+### Identify Proteins Influenced by Experimental Groups
+Use ANOVA to test each protein's relationship with Genotype, Treatment, and Behavior. Rank proteins by average p-value across all three predictors to select the top 10 most relevant ones.
+
+``` {r id_proteins_of_interest}
+# Run ANOVA for each protein and extract p-values.
+anova_results <- map_dfr(protein_cols, function(protein) {
+  formula <- as.formula(paste0(protein, ' ~ Genotype + Treatment + Behavior'))
+  model <- aov(formula, data = mouse)
+  tidy_res <- broom::tidy(model)
+  
+  # Extract p-values for each grouping variable.
+  tibble(
+    Protein = protein,
+    p_Genotype = tidy_res$p.value[tidy_res$term == 'Genotype'],
+    p_Treatment = tidy_res$p.value[tidy_res$term == 'Treatment'],
+    p_Behavior = tidy_res$p.value[tidy_res$term == 'Behavior']
+  )
+})
+
+# Add a new column: average p-value across the 3 grouping variables.
+anova_results <- anova_results %>%
+  mutate(avg_p = rowMeans(across(c(p_Genotype, p_Treatment, p_Behavior)), na.rm = TRUE))
+
+# Sort by average p-value and return the top 10 proteins.
+top10_avg_p <- anova_results %>%
+  arrange(avg_p) %>%
+  slice_head(n = 10)
+
+# Print the result.
+print(top10_avg_p)
+
+# Extract just the protein names from the data frame.
+top_proteins <- top10_avg_p$Protein
+
+# Select those proteins + grouping variables & mouse IDs.
+mouse_top_proteins <- mouse %>%
+  select(MouseID, all_of(top_proteins), Genotype, Treatment, Behavior)
+
+# Define grouping variables.
+group_vars <- c('Genotype', 'Treatment', 'Behavior')
+```
+
+### Data Exploration and Transformation
+Inspect each selected protein for variance, outliers, and shape of the distribution.
+
+Transform as needed and then scale.
+
+``` {r explore_data}
+# Overview of data.
+print('Summary of data')
+glimpse(mouse_top_proteins)
+summary(mouse_top_proteins)
+skim(mouse_top_proteins)
+str(mouse_top_proteins)
+
+# Assess normality in top 10 proteins.
+for (protein in top_proteins) {
+  cat('Assessing Normality for:', protein, '\n')
+  
+  # Generate a custom plot title.
+  plot_title <- paste(protein, 'Pre-Standardization')
+  
+  assess_normality(mouse_top_proteins, var_name = protein, plot_title = plot_title)
+}
+```
+
+#### transform
+Extracts the top 10 protein variables from the mouse_top_proteins data frame, applies log transformations to selected proteins.
+
+``` {r transform}
+# Define the list of 10 protein variables.
+protein_vars <- c('BRAF_N', 'P38_N', 'pGSK3B_N', 'DYRK1A_N', 'pERK_N', 'CaNA_N', 'GFAP_N', 'pMTOR_N', 'IL1B_N', 'NUMB_N')
+
+# Define the list protein variables to be logged.
+protein_log <- c('BRAF_N', 'DYRK1A_N', 'pERK_N', 'NUMB_N')
+
+# Extract only the 10 protein columns.
+mouse_proteins_only <- mouse_top_proteins[, protein_vars]
+
+# Verify that all columns are numeric.
+str(mouse_proteins_only)
+
+# Log transform the specified proteins.
+for (protein in protein_log) {
+    mouse_proteins_only[[protein]] <- log(mouse_proteins_only[[protein]])
+    
+    message('Log transformation applied to: ', protein)
+}
+```
+
+### PCA
+Applied PCA to transformed protein levels and color samples by grouping variables. I statistically test whether experimental conditions influence the major PCA axes (PC1, PC2), helping interpret visual clustering.
+
+This PCA chunk performs a comprehensive principal component analysis (PCA) on the top 10 standardized protein variables, including variance assessment, feature ranking, and group-wise significance testing.
+
+Outputs a scree plot, PCA scatter plots, loadings, ANOVA Results.
+
+``` {r PCA}
+# Build the PCA matrix.
+pca_matrix <- mouse_top_proteins %>%
+  select(all_of(top_proteins))
+
+# Run PCA using prcomp.
+pca_result <- prcomp(pca_matrix, center = TRUE, scale. = TRUE)
+
+# View how much variance each PC explains.
+summary(pca_result)
+
+# Scree plot with % variance.
+explained_variance <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+barplot(explained_variance * 100, main = 'PCA Scree Plot (Standardized Proteins)',
+        ylab = 'Percentage of Variance Explained', xlab = 'Principal Component',
+        col = 'steelblue', names.arg = paste0('PC', 1:length(explained_variance)))
+
+# Extract the loadings (rotation matrix) from the PCA result.
+loadings <- pca_result$rotation
+
+# Select the loadings for the first principal component (PC1).
+pc1_loadings <- loadings[, 1]
+
+# Rank proteins by absolute loading magnitude and get the top 5.
+top_5_proteins_pc1 <- names(sort(abs(pc1_loadings), decreasing = TRUE))[1:5]
+
+# Print the top 5 protein names.
+cat('Top 5 Proteins Contributing to PC1:\n')
+print(top_5_proteins_pc1)
+
+# Select the loadings for the second principal component (PC2).
+pc2_loadings <- loadings[, 2]
+
+# Rank proteins by absolute loading magnitude and get the top 5.
+top_5_proteins_pc2 <- names(sort(abs(pc2_loadings), decreasing = TRUE))[1:5]
+
+# Print the top 5 protein names.
+cat('Top 5 Proteins Contributing to PC2:\n')
+print(top_5_proteins_pc2)
+
+# Q-Q Plot for PC1 and PC2
+par(mfrow = c(1, 2))
+qqnorm(pca_result$x[, 1], main = 'Q-Q Plot for PC1')
+qqline(pca_result$x[, 1])
+qqnorm(pca_result$x[, 2], main = 'Q-Q Plot for PC2')
+qqline(pca_result$x[, 2])
+par(mfrow = c(1, 1))
+
+# Add the top 2 PCs back to your data with group variables.
+pca_scores <- as.data.frame(pca_result$x) %>%
+  bind_cols(mouse_top_proteins %>% select(Genotype, Treatment, Behavior))
+
+# Prepare an empty data frame to collect significance markers.
+significance_df <- data.frame(Group = character(), PC = character(), Asterisk = character(), stringsAsFactors = FALSE)
+
+# Loop through each grouping variable to create PCA plots.
+for (group in group_vars) {
+  
+  cat('PCA Plot Colored by:', group, '\n')
+  
+  # Run ANOVA for PC1 and PC2.
+  model_pc1 <- aov(as.formula(paste('PC1 ~', group)), data = pca_scores)
+  model_pc2 <- aov(as.formula(paste('PC2 ~', group)), data = pca_scores)
+  
+  # Extract p-values.
+  p_pc1 <- summary(model_pc1)[[1]]$`Pr(>F)`[1]
+  p_pc2 <- summary(model_pc2)[[1]]$`Pr(>F)`[1]
+  
+  # Generate asterisks based on p-value thresholds.
+  sig_pc1 <- ifelse(p_pc1 < 0.001, '***', ifelse(p_pc1 < 0.01, '**', ifelse(p_pc1 < 0.05, '*', '')))
+  sig_pc2 <- ifelse(p_pc2 < 0.001, '***', ifelse(p_pc2 < 0.01, '**', ifelse(p_pc2 < 0.05, '*', '')))
+  
+  # Append to the significance data frame.
+  significance_df <- rbind(significance_df,
+                           data.frame(Group = group, PC = 'PC1', Asterisk = sig_pc1),
+                           data.frame(Group = group, PC = 'PC2', Asterisk = sig_pc2))
+  
+  # Create the PCA plot.
+  p <- ggplot(pca_scores, aes(x = PC1, y = PC2, color = .data[[group]])) +
+    geom_point(alpha = 0.7, size = 2) +
+    labs(
+      title = paste('PCA: Standardized Top 10 Proteins — Colored by', group),
+      x = 'PC1',
+      y = 'PC2',
+      color = group
+    ) +
+    theme_minimal()
+  
+  # Print the plot
+  print(p)
+}
+
+# Print the significance legend.
+cat('\nSignificance Legend:\n')
+print(significance_df)
+
+# Loop over each grouping variable and test PC1 and PC2.
+for (group in group_vars) {
+  
+  cat('ANOVA: Testing', group, 'effects on PC1 and PC2\n')
+  
+  # Formula strings.
+  formula_pc1 <- as.formula(paste('PC1 ~', group))
+  formula_pc2 <- as.formula(paste('PC2 ~', group))
+  
+  # ANOVAs.
+  model_pc1 <- aov(formula_pc1, data = pca_scores)
+  cat('\n--- PC1 ~', group, '---\n')
+  print(summary(model_pc1))
+  
+  model_pc2 <- aov(formula_pc2, data = pca_scores)
+  cat('\n--- PC2 ~', group, '---\n')
+  print(summary(model_pc2))
+}
+
+# Permutation test for PCA.
+cat('\nRunning Permutation Test for PCA...\n')
+set.seed(123)
+n_perm <- 1000
+perm_var_exp <- replicate(n_perm, {
+  shuffled_data <- apply(pca_matrix, 2, sample)
+  prcomp(shuffled_data)$sdev^2 / sum(prcomp(shuffled_data)$sdev^2)
+})
+
+# Compare observed and permuted variances.
+obs_var_exp <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+perm_p_values <- sapply(1:length(obs_var_exp), function(i) {
+  mean(perm_var_exp[i, ] >= obs_var_exp[i])
+})
+
+# Print permutation test results.
+cat('\nPermutation Test P-Values:\n')
+print(perm_p_values)
+```
+
+### RDA (Redundancy Analysis)
+Applied RDA for a more hypothesis-driven analysis than PCA.
+
+#### RDA_biplot
+This function creates a detailed biplot for visualizing Redundancy Analysis (RDA) results.
+
+``` {r RDA_biplot}
+rda_biplot <- function(rda_model, site_alpha = 0.4, arrow_size = 0.8, label_size = 4.5) {
+  
+  # Extract sample scores.
+  sites_df <- as.data.frame(scores(rda_model, display = 'sites', scaling = 2))
+  
+  # Extract protein scores.
+  proteins_df <- as.data.frame(scores(rda_model, display = 'species', scaling = 2))
+  
+  # Protein name column.
+  proteins_df$Protein <- rownames(proteins_df)
+  
+  # Extract centroids (group levels).
+  centroids_df <- as.data.frame(scores(rda_model, display = 'cn', scaling = 2))
+  
+  # Add labels for centroids.
+  centroids_df$Group <- rownames(centroids_df)
+  
+  # Generate separate color palettes.
+  centroid_colors <- hue_pal()(nrow(centroids_df))
+  protein_colors <- setNames(hue_pal()(nrow(proteins_df)), proteins_df$Protein)
+  
+  # Plot RDA biplot
+  p <- ggplot() +
+    # Plot the sample points.
+    geom_point(data = sites_df, aes(RDA1, RDA2), alpha = site_alpha, color = 'black', size = 1.5) +
+    
+    # Plot the centroids.
+    geom_point(data = centroids_df, aes(RDA1, RDA2, color = Group), size = 4, shape = 17) +
+    
+    # Plot the protein vectors.
+    geom_segment(data = proteins_df, aes(x = 0, y = 0, xend = RDA1, yend = RDA2, color = Protein),
+                 linewidth = arrow_size, arrow = arrow(length = unit(0.2, 'cm')), show.legend = FALSE) +
+    
+    # Add text labels for proteins.
+    geom_text_repel(data = proteins_df, aes(RDA1, RDA2, label = Protein, color = Protein),
+                    size = label_size, max.overlaps = 50, show.legend = FALSE) +
+    
+    labs(title = 'RDA Biplot (Scaling 2)', x = 'RDA1', y = 'RDA2') +
+    
+    # Customize theme.
+    theme_minimal() +
+    theme(legend.position = 'right',
+          plot.title = element_text(hjust = 0.5, size = 16, face = 'bold'),
+          axis.title = element_text(size = 14),
+          axis.text = element_text(size = 12)) +
+    
+    # Create legend.
+    guides(color = guide_legend(title = 'Group Centroids', override.aes = list(size = 5))) +
+    
+    # Set the custom colors for the centroids and proteins.
+    scale_color_manual(values = c(protein_colors, setNames(centroid_colors, centroids_df$Group)))
+  
+  print(p)
+}
+```
+
+### RDA
+This RDA chunk performs a complete Redundancy Analysis (RDA), including model fitting, significance testing, and result visualization:
+
+``` {r RDA}
+# Build the response matrix.
+response_matrix <- mouse_top_proteins[, top_proteins]
+
+# Build the predictor matrix (grouping variables).
+predictors <- mouse_top_proteins[, c('Genotype', 'Treatment', 'Behavior')]
+
+# Run RDA.
+rda_model <- rda(response_matrix ~ Genotype + Treatment + Behavior, data = predictors)
+
+# Model summary.
+cat('\nRDA Model Summary:\n')
+print(summary(rda_model))
+
+# Overall model significance.
+cat('\nOverall RDA Model Significance:\n')
+overall_test <- anova(rda_model)
+print(overall_test)
+
+# Term significance.
+cat('\nRDA Term Significance:\n')
+term_tests <- anova(rda_model, by = 'term')
+print(term_tests)
+
+# Axis significance.
+cat('\nRDA Axis Significance:\n')
+axis_tests <- anova(rda_model, by = 'axis')
+print(axis_tests)
+
+# Extract site scores from the RDA model.
+site_scores <- as.data.frame(scores(rda_model, display = 'sites', scaling = 2))
+
+# VIF for multicollinearity.
+cat('\nVariance Inflation Factors (VIF):\n')
+vif_values <- vif.cca(rda_model)
+print(vif_values)
+
+# Scree plot.
+cat('\nRDA Scree Plot:\n')
+barplot(rda_model$CCA$eig / sum(rda_model$CCA$eig), 
+        main = 'RDA Axis Importance (Scree Plot)',
+        ylab = 'Proportion of Variance Explained', 
+        xlab = 'RDA Axis', 
+        col = 'steelblue')
+
+# Extract and print top 5 proteins contributing to RDA1 and RDA2.
+cat('\nTop 5 Proteins Contributing to RDA1:\n')
+rda_loadings <- scores(rda_model, display = 'species')
+top_5_rda1 <- names(sort(abs(rda_loadings[, 'RDA1']), decreasing = TRUE))[1:5]
+print(top_5_rda1)
+
+cat('\nTop 5 Proteins Contributing to RDA2:\n')
+top_5_rda2 <- names(sort(abs(rda_loadings[, 'RDA2']), decreasing = TRUE))[1:5]
+print(top_5_rda2)
+
+# Biplot.
+cat('\nGenerating RDA Biplot...\n')
+rda_biplot(rda_model)
+```
