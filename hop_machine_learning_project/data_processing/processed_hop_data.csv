@@ -1,0 +1,101 @@
+name,purpose,alpha_acid_avg,beta_acid_avg,alpha_beta_ratio,hsi,cohumulone_%_of_alpha,total_oils_avg,myrcene,humulene,caryophyllene,farnesene,tags,beer_styles
+,,,,,,,,,,,,[],[]
+Astra,Dual,8.5,5.0,1.5,,27% avg,2.0,,7.0,2.5,,"['tropical_fruit', 'sweet', 'peach', 'white_wine', 'melon', 'grassy', 'grapefruit', 'honey']","['Ale', 'Pale Ale', 'IPA', 'Lager', 'Saison']"
+Eclipse,Dual,17.4,7.5,1.5,,35% avg,2.3,42.0,1.0,9.0,0.5,"['citrus', 'pine', 'mandarin']","['IPA', 'Pale Ale', 'NEIPA', 'Lager', 'Wheat Ale']"
+Ella,Dual,16.3,5.9,2.0,,36.5% avg,2.9,42.0,18.5,11.5,13.0,"['floral', 'spicy', 'grapefruit', 'tropical_fruit', 'noble', 'anise']","['Pale Ale', 'Stout', 'Lager', 'Pilsner']"
+Enigma,Aroma,16.5,5.8,2.0,0.295,40% avg,2.4,26.5,15.5,7.0,10.5,"['tropical_fruit', 'berry', 'stone_fruit', 'raspberry', 'redcurrant', 'white_wine']","['IPA', 'Pale Ale']"
+Feux-Coeur Francais,Bittering,14.0,4.6,2.5,,,,,,,,[],[]
+Galaxy,Dual,13.5,7.0,1.5,,37% avg,3.4,51.0,1.5,10.0,4.0,"['passion_fruit', 'citrus', 'peach', 'pineapple', 'tropical_fruit', 'cannabis', 'dank']","['Pale Ale', 'IPA', 'Barley Wine', 'Fruit Beers', 'Saison', 'Wheat Beer', 'Wild Ale']"
+Helga,Aroma,6.4,6.0,1.0,,21.5% avg,0.8,7.0,45.0,27.5,0.5,['noble'],"['Ale', 'Lager']"
+HPA-016,Aroma,17.2,7.5,1.5,,35% avg,1.8,42.0,1.0,9.0,0.5,"['mandarin', 'citrus', 'pine', 'fruity']","['IPA', 'NEIPA']"
+Melba,Aroma,8.5,3.8,2.0,,30% avg,3.0,,,,,"['passion_fruit', 'grapefruit', 'citrus', 'spicy']",[]
+Pride of Ringwood,Bittering,9.0,6.0,1.5,,32.5% avg,1.2,32.5,3.0,11.5,0.5,"['cedar', 'oak', 'herbal']","['British Ale', 'Australian Ale', 'Australian Lager']"
+Summer,Aroma,6.0,5.5,1.0,,22.5% avg,1.7,33.5,39.0,9.5,0.5,"['apricot', 'melon', 'grassy', 'citrus', 'stone_fruit', 'passion_fruit', 'peach']","['American Ale', 'Belgian Ale', 'IPA', 'Wheat']"
+Super Pride,Dual,14.4,6.3,2.0,,37.5% avg,3.5,38.0,1.5,7.0,0.5,"['resin', 'fruity', 'mild']","['Bock', 'IPA', 'Lager', 'Pale Ale', 'Imperial Pale Ale']"
+Sylva,Aroma,5.7,5.0,1.5,,24% avg,1.2,31.0,22.5,6.5,25.0,"['floral', 'bohemian', 'hoppy', 'woody']","['Pilsner', 'Lager', 'California Common', 'Pale Ale']"
+Topaz,Dual,16.9,6.4,2.0,,50% avg,1.8,37.0,12.0,9.5,0.5,"['lychee', 'clove', 'resin', 'grassy', 'tropical_fruit', 'pine', 'passion_fruit']","['IPA', 'American Pale Ale', 'Bitter', 'Amber Ale']"
+Vic Secret,Dual,17.9,7.2,2.0,,54% avg,2.4,38.5,15.0,12.0,0.5,"['tropical_fruit', 'pineapple', 'pine', 'passion_fruit', 'herbal', 'earthy']","['Pale Ale', 'IPA', 'Stout', 'Porter']"
+Vienna Gold,Dual,8.0,,,,,,,,,,"['noble', 'fruity', 'passion_fruit']",[]
+,,,,,,,,,,,,[],[]
+Canadian Redvine,Aroma,5.5,5.5,1.0,0.20,47% avg,,70.0,2.0,2.0,5.5,"['cherry', 'berry', 'pine', 'grapefruit']","['Red Ale', 'Porter']"
+Lumberjack,Dual,10.5,,,,,,,,,,"['melon', 'citrus', 'spices', 'clove', 'allspice', 'bitter', 'earthy']","['Pilsner', 'Lagers', 'Pale Ale', 'Belgian Ale']"
+Sasquatch,Dual,7.8,8.2,,,34.5% avg,0.8,60.5,13.5,5.5,8.5,"['tangerine', 'lemon', 'floral', 'orange', 'mint', 'citrus']","['Lager', 'Wheat', 'IPA', 'NEIPA']"
+Wild Loyalist,Aroma,4.7,5.7,1.0,,,,,,,,"['herbal', 'spicy', 'earthy', 'floral', 'noble']","['Whitbier', 'ESB']"
+,,,,,,,,,,,,[],[]
+Marco Polo,Dual,12.5,5.0,2.0,,32.5% avg,1.1,45.0,20.0,10.0,0.5,"['gooseberry', 'oregano', 'elderflower']","['IPA', 'Pale Ale']"
+Tsingdao Flower,Dual,7.0,3.6,1.5,,35% avg,0.6,,,,,"['earthy', 'lemon', 'melon', 'citrus']",['Pale Ale']
+,,,,,,,,,,,,[],[]
+Agnus,Bittering,11.5,5.3,1.5,,33.5% avg,2.5,47.5,17.5,,0.5,"['lavender', 'leather', 'tobacco', 'citrus', 'spicy']",[]
+Amethyst,Aroma,4.8,7.5,1.0,,24% avg,0.7,42.0,19.0,6.0,0.5,"['citrus', 'earthy', 'spicy']","['Lager', 'Pale Ale']"
+Bohemie,Aroma,6.5,7.5,1.0,,24.5% avg,1.3,37.5,20.0,8.5,2.0,"['herbal', 'floral', 'citrus', 'spicy']",[]
+Boomerang,Dual,12.0,7.5,1.5,,29.5% avg,2.3,41.5,20.5,9.0,0.5,"['spicy', 'citrus']","['Ale', 'IPA']"
+Bor,Dual,7.5,4.3,1.5,,24.5% avg,1.5,,,,,"['spicy', 'pine']",[]
+Gaia,Bittering,13.5,7.5,1.5,,24.5% avg,2.0,30.0,3.0,10.5,6.0,"['hoppy', 'spicy']",[]
+Harmonie,Aroma,6.0,6.5,1.0,,20.5% avg,1.2,35.0,15.0,8.5,0.5,"['banana', 'caramel', 'green_tea', 'apricot']",[]
+Kazbek,Aroma,6.5,5.0,1.0,,37.5% avg,1.4,47.5,27.5,12.5,0.5,"['spicy', 'lemon']","['Lagers', 'Pale Ales', 'Wheats', 'Belgian Ales']"
+Mimosa,Aroma,3.4,6.4,1.0,,27.5% avg,0.9,29.0,7.5,6.5,1.8,[],[]
+Premiant,Bittering,8.0,5.0,1.5,,20.5% avg,1.5,42.5,30.0,10.5,2.0,['neutral'],"['Pilsner', 'Ale', 'Lager']"
+Saaz (CZ),Aroma,3.5,6.0,1.0,0.45-0.55,24.5% avg,0.7,32.5,22.5,7.5,17.0,"['earthy', 'herbal', 'floral', 'mild', 'noble']","['Lager', 'Wheat', 'Pilsner']"
+Saaz Late,Aroma,4.8,5.3,1.0,,22.5% avg,0.8,30.0,20.0,7.5,17.5,"['earthy', 'herbal', 'floral']",['Pilsner']
+Sládek,Aroma,6.8,7.5,1.0,,31.5% avg,1.4,42.5,30.0,11.5,0.5,"['noble', 'fruity', 'peach', 'passion_fruit', 'grapefruit']","['Lager', 'Pilsner', 'IPA']"
+Vital,Dual,12.5,8.5,1.5,,23.5% avg,1.8,50.0,3.5,6.5,2.0,"['plum', 'lavender', 'spicy', 'licorice']",[]
+,,,,,,,,,,,,[],[]
+Aramis,Aroma,7.0,4.3,1.5,,31% avg,1.4,39.5,20.5,5.0,3.0,"['green', 'herbal', 'spicy', 'citrus', 'grassy', 'black_pepper', 'floral']","['Saison', 'Belgian Ale', 'French Ale', 'Trappist', 'Porter', 'Pale Ale', 'Weizenbier', 'Pilsner', 'Lager']"
+Barbe Rouge,Aroma,6.9,4.0,1.5,,26% avg,2.1,47.5,20.0,3.0,2.0,"['citrus', 'kumquat', 'orange', 'lime', 'redcurrant', 'strawberry', 'raspberry', 'floral', 'berry', 'herbal']","['Belgian Ale', 'Amber', 'Pilsner', 'Bière de Garde', 'Pale Ale', 'Black IPA', 'Porter', 'Saison']"
+Bouclier,Aroma,6.2,2.9,1.5,,44.5% avg,1.4,38.0,34.0,3.5,,"['herbal', 'grassy', 'spicy', 'citrus']","['Saison', 'Lager', 'Pilsner', 'Stout', 'Blonde']"
+Elixir,Aroma,5.8,5.6,1.0,,27.5% avg,2.0,70.0,1.5,26.5,0.5,"['rose', 'cognac', 'leather', 'tobacco', 'citrus', 'tropical_fruit', 'tangerine', 'orange', 'floral', 'sandalwood', 'spicy']","['Farmhouse Ale', 'Saison', 'Bière de Gardes', 'Lager', 'IPA']"
+Mistral,Dual,7.5,3.5,1.5,,34% avg,1.3,62.0,11.0,3.5,3.0,"['citrus', 'floral', 'melon', 'grapes', 'wine', 'pear', 'passion_fruit', 'kumquat', 'mango']","['IPA', 'Saison', 'Pale Ale', 'Belgian Ale', 'Pilsner']"
+Petit Blanc,Aroma,3.0,5.5,1.0,,15% avg,0.7,,,,,"['cherry', 'melon', 'papaya', 'green_tea', 'lilac']","['Saison', 'Pale Ale', 'Wheats']"
+Strisselspalt,Aroma,2.5,4.5,1.0,,23.5% avg,0.7,43.5,17.0,9.0,0.5,"['spicy', 'floral', 'citrus', 'herbal']","['Amber Ale', 'Blonde Ale', 'Bock', 'Golden Ale', 'Pilsner', 'Saison']"
+Tardif de Bourgogne,Aroma,3.8,4.5,1.0,,20% avg,0.7,,,,,"['floral', 'redberry', 'green_tea', 'noble', 'incense', 'pine', 'rose', 'lavender']","['Ale', 'Lager']"
+Triskel,Aroma,6.0,4.8,1.0,,21.5% avg,1.6,58.0,13.0,2.5,0.5,"['floral', 'sweet_fruit', 'caramel', 'fruity', 'citrus']","['Belgian Ale', 'Saison', 'Kolsch', 'Pilsner', 'Pale Ale', 'IPA', 'Lager', 'Wheat']"
+,,,,,,,,,,,,[],[]
+Akoya,Aroma,9.5,4.5,1.5,,28.5% avg,1.8,,,,,"['tea', 'spicy', 'green_fruit', 'pepper']","['Alt', 'Pilsner', 'Lager', 'Helles', 'Kolsch', 'Golden Ale', 'Bitter', 'English IPA']"
+Ariana,Aroma,11.0,5.3,1.5,,41% avg,2.0,58.0,,,,"['citrus', 'tangerine', 'passion_fruit', 'pineapple', 'jasmine', 'herbal', 'fruity', 'gooseberry']","['Wheat', 'Pale Ale', 'Saison']"
+Aurum,Aroma,4.6,3.1,,,21.5% avg,1.1,,,,,"['spicy', 'fruity', 'floral', 'mild', 'herbal', 'earthy', 'citrus', 'noble']",['Pilsner']
+Brewer's Gold (GR),Bittering,6.2,3.3,1.5,0.258,43.5% avg,1.5,45.0,30.0,7.5,0.5,"['black_currant', 'spicy']","['Stout', 'Dark Ale', 'Belgian Ale', 'English Ale', 'German Ale']"
+Callista,Aroma,3.5,7.5,1.0,,18.5% avg,1.4,63.5,,,,"['pear', 'caramel', 'passion_fruit', 'orange', 'apricot', 'peach', 'pine', 'blackberry', 'strawberry']",[]
+Diamant,Aroma,7.3,,,,19% avg,1.6,,,,,"['fennel', 'lavender', 'citrus']",['Lager']
+Hallertau Blanc,Aroma,10.5,5.5,1.5,,28.5% avg,1.5,62.5,1.5,1.0,0.5,"['pineapple', 'gooseberry', 'white_wine', 'grapes', 'lemongrass', 'passion_fruit', 'clean', 'sauvignon_blanc']","['IPA', 'Belgian Ale', 'Wheat Beer', 'Bretts', 'Pale Ale']"
+Hallertau Gold,Aroma,8.5,6.0,1.5,,20% avg,1.8,63.0,17.0,4.5,0.5,[],['American Lager']
+Hallertau Mittelfrüh,Aroma,4.3,4.0,1.0,,23% avg,1.0,15.5,55.5,14.5,0.5,"['spicy', 'floral', 'citrus', 'grassy', 'tea']","['Altbier', 'Belgian Ale', 'Pilsner', 'Bock', 'Lager', 'Wheat', 'Cask Ale']"
+Hallertau Tradition,Aroma,5.8,4.5,1.5,,26.5% avg,1.2,24.5,42.5,12.5,0.5,"['earthy', 'grassy', 'nectar', 'fruity', 'noble']","['Lager', 'Pilsner', 'Wheat']"
+Herkules,Bittering,14.5,4.8,2.0,,35% avg,1.9,40.0,37.5,9.5,0.5,"['citrus', 'melon']","['German Ale', 'German Lager', 'Altbier']"
+Hersbrucker,Aroma,3.3,4.3,1.0,0.35-0.45,21% avg,0.9,22.5,25.0,10.5,0.5,"['noble', 'hay', 'orange', 'tobacco']","['Dunkel', 'Strong Ale', 'Pilsner', 'Altbier', 'Weizenbock', 'Golden Ale', 'Marzen', 'Pale Ale', 'Wheat', 'Specialty Ale', 'Hefeweizen', 'Light Ale', 'Lager']"
+Huell Melon,Aroma,7.5,7.0,1.0,,27.5% avg,1.0,36.0,15.0,7.5,0.5,"['melon', 'strawberry', 'honeydew', 'fruity', 'sweet', 'orange', 'vanilla']","['Belgian Ale', 'Hefeweizen', 'IPA']"
+Hüller Bitterer,Bittering,5.8,5.0,1.0,,28.5% avg,1.3,39.5,15.0,6.5,0.5,['bitter'],"['ESB', 'German Ale', 'Lager']"
+Magnum (GR),Bittering,13.5,5.8,2.0,0.15-0.20,25% avg,2.1,37.5,37.5,10.0,0.5,"['apple', 'black_pepper', 'clean', 'citrus', 'clean', 'floral', 'fruity']","['Ale', 'Lager']"
+Mandarina Bavaria,Dual,8.8,6.0,1.5,,33% avg,1.4,40.0,12.5,8.0,1.5,"['tangerine', 'lemon', 'citrus', 'resin', 'herbal', 'tropical_fruit']","['American Pale Ale', 'Sours', 'New England IPA', 'IPA', 'Saison', 'Black Ale', 'Brett']"
+Merkur,Dual,14.1,5.9,2.0,,18.5% avg,2.5,47.5,30.0,9.0,0.5,"['sugar', 'pineapple', 'mint', 'citrus', 'earthy']","['IPA', 'Lager', 'Belgian Ale', 'Pilsner', 'Stout']"
+Monroe,Aroma,2.7,7.0,0.5,0.252,,1.0,,,,,"['mild', 'smooth', 'strawberry', 'cherry', 'plum', 'passion_fruit', 'raspberry', 'orange', 'raspberry']","['Ales', 'American Lagers', 'IPA']"
+Northern Brewer (GR),Bittering,8.0,4.0,1.5,,30% avg,1.6,35.0,42.5,15.0,0.5,"['mint', 'grassy', 'pine']","['English Ale', 'American Ale', 'Lager', 'Porter']"
+Opal,Dual,9.5,4.5,1.5,,23.5% avg,1.1,32.5,40.0,11.5,0.5,"['black_pepper', 'citrus', 'spicy', 'floral', 'herbal', 'anise']","['Belgian Ale', 'Hefeweizen', 'Helles', 'Lager', 'Pilsner', 'Wheats']"
+Orion,Dual,7.5,4.1,1.5,,27.5% avg,1.5,48.5,21.0,9.5,0.5,['spicy'],"['German Ale', 'Lager', 'Helles', 'Dunkel', 'Pilsner']"
+Perle (GR),Aroma,6.5,3.8,1.5,,32% avg,1.5,27.5,45.0,15.0,0.5,"['floral', 'fruity', 'mint', 'stone_fruit', 'herbal', 'earthy', 'slightly_spicy']","['Kolsch', 'Lager', 'Pilsner']"
+Polaris,Dual,20.5,5.5,2.5,,25.5% avg,4.5,50.0,27.5,10.5,0.5,"['mint', 'menthol', 'pineapple']","['Ale', 'Pale Ale', 'Stout', 'IPA']"
+Relax,Aroma,2.2,12.5,0.5,,,1.2,23.5,,,,"['honeydew', 'melon', 'cognac', 'lychee', 'lavender', 'leather', 'hibiscus', 'lemongrass']","['Altbier', 'Kolsch', 'Blond Ale']"
+Saphir,Aroma,3.3,5.5,1.0,,14.5% avg,1.1,32.5,25.0,11.5,0.5,"['spicy', 'fruity', 'floral', 'tangerine']","['Pilsner', 'German Lager', 'Belgian Ale', 'Wheat']"
+Smaragd,Bittering,5.0,4.5,1.0,,15.5% avg,0.6,30.0,40.0,11.5,0.5,"['floral', 'fruity', 'spicy', 'tobacco', 'anise', 'clove', 'noble']","['Pilsner', 'German Ale', 'German Lager', 'Belgian Ale', 'Weissbier', 'Kolsch']"
+Solero,Aroma,10.1,6.0,1.5,,37.5% avg,1.8,,,,,"['tropical_fruit', 'mango', 'passion_fruit']","['India Pale Lager', 'Pale Ale', 'APA', 'NEIPA', 'IPA']"
+Spalt,Aroma,4.1,4.0,1.0,,25.5% avg,0.7,27.5,25.0,10.5,15.0,"['noble', 'earthy', 'herbal', 'floral']","['Bock', 'Altbier', 'Lager', 'Pilsner', 'Helles']"
+Spalter Select,Aroma,4.8,3.8,1.5,,24% avg,0.7,30.0,16.0,7.0,18.5,"['spicy', 'grassy']","['Kolsch', 'Belgian Ale', 'French Ale', 'Lager']"
+Tango,Dual,9.3,8.8,1.0,,22% avg,3.2,,,,,"['passion_fruit', 'pineapple', 'spicy', 'citrus']",[]
+Tettnanger,Dual,4.2,4.1,1.0,,25% avg,0.8,40.5,20.5,6.5,11.5,"['spicy', 'floral', 'pepper', 'black_tea']","['Wheat Beer', 'Bavarian Hefeweizen', 'Bitter', 'California Blonde Ale', 'Red Ale', 'Pilsner', 'Lager', 'American Amber Ale', 'Winter Ale', 'Pale Ale', 'Cream Ale', 'American']"
+Wurttemberg,Aroma,3.8,3.1,,,,0.8,,,,,"['lime', 'citrus', 'floral', 'pine', 'oregano', 'woody']",['Lager']
+Yellow Sub,Aroma,6.7,,,,,1.4,,,,,"['sweet', 'citrus', 'red_berry', 'apricot', 'orange', 'blackberry']","['IPA', 'Ale']"
+,,,,,,,,,,,,[],[]
+Golden Star,Aroma,5.4,4.6,,0.36,50% avg,0.6,,,,,[],[]
+Sorachi Ace,Dual,13.5,7.0,1.5,0.275,25.5% avg,2.0,50.0,23.0,9.0,3.5,"['lemon', 'dill', 'woody', 'tobacco', 'citrus', 'herbal']","['Belgian Wits', 'IPA', 'Pale Ale', 'Belgian Ale', 'Saison']"
+Toyomidori,Bittering,12.0,5.5,1.5,0.37,40% avg,1.0,59.0,10.5,4.5,0.5,"['mild', 'fruity', 'tobacco', 'green_tea']",[]
+,,,,,,,,,,,,[],[]
+Brooklyn,Dual,18.5,9.0,1.5,,26% avg,1.7,,,,,"['grapefruit', 'tropical_fruit', 'passion_fruit', 'spicy', 'hay']",[]
+Dr. Rudi,Dual,11.0,7.8,1.0,,37.5% avg,1.5,29.0,33.5,10.0,0.5,"['resin', 'pine', 'lemongrass']","['Ale', 'Lager']"
+Green Bullet,Dual,13.0,6.8,1.5,,40.5% avg,1.2,38.0,28.5,9.5,0.5,"['pine', 'black_pepper', 'plum', 'resin', 'dried_fruit', 'floral']","['Lager', 'Ales', 'Stout', 'Saison', 'Bock', 'ESB']"
+HORT9909,Dual,8.0,3.5,1.5,,28% avg,1.9,50.0,12.0,4.5,0.5,"['lime', 'hay', 'sweet', 'spicy', 'citrus', 'lemon', 'noble', 'black_pepper', 'pine']","['Pale Ale', 'IPA']"
+Kohatu,Dual,6.5,5.0,1.0,,22.5% avg,1.5,27.5,35.0,13.5,0.5,['tropical_fruit'],"['Belgian Ale', 'Wheat Beer', 'Blonde Ale', 'IPA', 'Pale Ale']"
+Motueka,Dual,6.8,5.3,1.0,0.3-0.4,30% avg,0.9,47.5,3.5,2.0,12.5,"['citrus', 'mojito', 'lime', 'lemon', 'tropical_fruit', 'floral']","['IPA', 'Pale Ale', 'European Lager', 'Belgian Ales', 'English Ale', 'Pilsner', 'Mexican Lager']"
+Moutere,Dual,18.5,9.0,1.5,,26% avg,1.7,22.5,15.5,5.5,0.5,"['tropical_fruit', 'grapefruit', 'passion_fruit', 'hay', 'earthy', 'pine']","['Fruit Beers', 'IPA', 'Sours']"
+Nectaron,Aroma,10.8,4.8,1.5,,27% avg,1.4,62.0,15.0,4.5,0.5,"['tropical_fruit', 'citrus', 'pineapple', 'passion_fruit', 'peach', 'grapefruit', 'nectar']","['IPA', 'NEIPA', 'Strong Pale Ale', 'XPA']"
+Nelson Sauvin,Aroma,11.5,6.5,1.5,,22.5% avg,1.2,32.5,31.0,8.5,0.5,"['white_wine', 'fruity', 'gooseberry', 'grapes', 'sauvignon_blanc']","['American Ale', 'Lager', 'IPA']"
+NZH-107,Dual,9.5,6.0,1.5,,29% avg,1.8,60.0,8.5,6.0,5.5,"['passion_fruit', 'citrus', 'grapefruit']","['IPA', 'Pale Ale', 'Lager']"
+Pacific Gem,Bittering,14.0,8.0,1.5,0.22,37.5% avg,1.2,35.0,25.0,9.0,0.5,"['black_pepper', 'berry', 'blackberry', 'floral', 'oak', 'pine']","['Pale Ale', 'IPA', 'Lager']"
