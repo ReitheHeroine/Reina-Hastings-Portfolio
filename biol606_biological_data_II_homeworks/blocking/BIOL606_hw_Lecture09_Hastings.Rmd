@@ -1,0 +1,120 @@
+---
+title: "BIOL606_hw_Lecture09_Hastings"
+output: html_document
+date: "2025-03-03"
+---
+```{r setup, include=FALSE}
+# Load libraries.
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(ggfortify)
+library(lme4)
+library(car)
+
+rm(list=ls()) # Clear environment.
+```
+
+# Homework Lecture 09
+
+### Question 1: Import data and make exploratory data plots.
+
+``` {r explore}
+limpet <- read_csv('Limpet_grazing.csv') # Read in data from local directory.
+
+print('Summary of limpet data')
+glimpse(limpet) # Overview of data set.
+summary(limpet) # Statistical summaries of the data set.
+str(limpet) # Structure of data set.
+
+# Factorize categorical variables.
+limpet$LimpetTreat <- factor(limpet$LimpetTreat)
+limpet$Site <- factor(limpet$Site)
+
+initial_plot <- ggplot(limpet, aes(x = LimpetTreat, y = Fo)) +
+  geom_point() +
+  labs (title = 'Limpet Treatment vs. Amount of Microalgae',
+        x = 'Limpet Treatment',
+        y = 'Amount of Microalgae') +
+  facet_wrap(.~TempC) +
+  theme_minimal()
+
+initial_plot <- ggplot(limpet, aes(x = Fo, y = TempC)) +
+  geom_point() +
+  labs (title = 'Average Temp of Plants vs. Amount of Microalgae',
+        x = 'Average Temp of Plants',
+        y = 'Amount of Microalgae') +
+  facet_wrap(.~LimpetTreat) +
+  theme_minimal()
+
+initial_plot
+
+histo_Fo <- ggplot(limpet, aes(x = Fo)) +
+  geom_histogram(bins = 10, fill = 'blue', color = 'black') +
+  theme_minimal()
+
+histo_Fo 
+
+histo_TempC <- ggplot(limpet, aes(x = TempC)) +
+  geom_histogram(bins = 10, fill = 'green', color = 'black') +
+  theme_minimal()
+
+histo_TempC
+
+histo_Site <- ggplot(limpet, aes(x = Site)) +
+  geom_bar(fill = 'orange', color = 'black') +
+  theme_minimal()
+
+histo_Site
+
+histo_LimpetTreat <- ggplot(limpet, aes(x = LimpetTreat)) +
+  geom_bar(fill = 'purple', color = 'black') +
+  theme_minimal()
+
+histo_LimpetTreat
+```
+
+### Question 2: Fit a linear model with LimpetTreat and TempC interaction, accounting for blocking by Site.
+
+``` {r model}
+# (1|site) accounts for random factor of site.
+model <- lmer(Fo ~ LimpetTreat * TempC + (1|Site), data = limpet)
+```
+
+### Question 3: Produce diagnostic plots to check for homoscedasticity and normality of residuals.
+
+``` {r diagnostics}
+# Model diagnostics.
+print('Summary:')
+summary(model)
+
+print('anova:')
+anova(model)
+
+print('Anova:')
+Anova(model)
+
+print('Plot:')
+plot(model)
+
+qqnorm(residuals(model))
+qqline(residuals(model))
+
+res_hist <- hist(residuals(model), breaks = 20, main = 'Histogram of Residuals', xlab = 'Residuals', col = 'lightblue', border = 'black')
+
+res_hist
+```
+
+### Question 4: Write a results statement based on your model ouput, reporting the relevant significant terms.
+===== Summary =====\
+The range of -2.01 to 1.38 showed no extreme outliers.\
+The random effect variance of site indicates that different site's Vo values vary noticeably. Fixed effects table values support this conclusion.\
+
+===== Anova ======\
+The effect of LimpetTreat on Fo was highly significant.\
+The effect of TempC on Fo was significant.\
+The interaction between LimpetTreat and Fo was highly significant.\
+
+===== Plots =====
+The residuals plot shows heteroscedasticity.\
+The qqline plots has slightly deviating tails which could imply outliers.\

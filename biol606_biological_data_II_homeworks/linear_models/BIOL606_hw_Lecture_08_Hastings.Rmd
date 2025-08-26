@@ -1,0 +1,256 @@
+---
+title: "BIOL606_hw_Lecture_08_Hastings"
+output:
+  html_document: default
+  pdf_document: default
+date: "2025-02-19"
+---
+
+```{r setup, include=FALSE}
+# Load libraries.
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(ggfortify)
+library(car)
+library(AICcmodavg)
+
+rm(list=ls()) # Clear environment.
+```
+
+# Homework Lecture 08\
+**Question 1:** Pick two of these variables that are not highly correlated. Use binomial glm's to determine if these factors influence Elaphostrongylus cervi infection in deer.\
+- I utilized a correlation matrix to select Fenced and QuercusTrees as the most uncorrelated variables.\
+- After checking for over dispersion and getting a deviance ratio of 4.203375, I went back and refit the model using a quasibinomial family.\
+- Based on the deer model summary, neither Fenced nor QuercusTrees had a significant effect on the TB infection in deer.\
+- Anova output suggested Fenced had some influence but not significantly.\
+``` {r binomial_glm_deer}
+# Load data set.
+deer <- read.table('Tbdeer.txt', header = TRUE, sep = '', stringsAsFactors = FALSE) # Load in Tbdeer.txt data set. Prevent the automatic conversion of string values to factors.
+glimpse(deer)
+
+# Check correlation between variables in deer data set.
+deer_vars <- deer %>% select(OpenLand, ScrubLand, QuercusPlants, QuercusTrees, EstateSize, Fenced, ReedDeerIndex, WildBoarIndex)
+
+# Compute correlation matrix.
+deer_cor_matrix <- cor(deer_vars, use = 'pairwise.complete.obs')
+
+print(deer_cor_matrix)
+
+# Remove rows with NA values in DeerPosTB or DeerSampledTB columns.
+deer_clean <- deer %>% drop_na(DeerPosTB, DeerSampledTB)
+
+# Create binomial generalized linear model.
+# - 'cbind(DeerPosTB, DeerSampledTB - DeerPosTB)' creates a two column response variable of successes 'DeerPosTB' and failures 'DeerSampledTB - DeerPosTB'.
+# - Fenced and QuercusTrees are the predictor variables.
+bi_deer_model <- glm(cbind(DeerPosTB, DeerSampledTB - DeerPosTB) ~ Fenced + QuercusTrees,
+                     data = deer_clean,
+                     family = quasibinomial)
+
+# Check for over dispersion.
+dev_ratio <- summary(bi_deer_model)$deviance / summary(bi_deer_model)$df.residual
+print(dev_ratio)
+
+# Check for over dispersion utilizing Pearson residuals.
+pearson_resid <- residuals(bi_deer_model, type = 'pearson')
+plot(pearson_resid, main = 'Pearson Residuals', ylab = 'Residuals')
+abline(h = c(-2, 2), col = 'red', lty = 2)
+
+# Summarize bi_deer_model.
+summary(bi_deer_model)
+
+# Compare fitted model to simpler model.
+anova(bi_deer_model, test = 'LRT')
+
+# Check residuals vs. fitted.
+plot(bi_deer_model, which = 1)
+
+# Create new data frame for generated predicted probabilities using bi_deer_model.
+deer_pred <- expand.grid(
+  QuercusTrees = seq(min(deer_clean$QuercusTrees), max(deer_clean$QuercusTrees), length.out = 100),
+  Fenced = c(0, 1)
+)
+
+# Generate predictions (on probability scale).
+deer_pred$pred_prob <- predict(bi_deer_model, deer_pred, type = 'response')
+
+# Plot infection probability vs. oak tree density.
+deer_model_plot <- ggplot(deer_clean, aes(x = QuercusTrees, y = DeerPosTB / DeerSampledTB, color = as.factor(Fenced))) +
+  geom_point(size = 2, alpha = 0.7, aes(shape = 'Actual Infection Rate')) + # Scatter plot of raw data.
+  geom_line(data = deer_pred, aes(x = QuercusTrees, y = pred_prob, color = as.factor (Fenced)), linewidth = 1) + # Fitted model predictions.
+  labs(
+    title = 'Deer TB Infection Probability vs Quercus Tree Density/Fenced Status',
+    subtitle = 'Points show actual infection rates, trend lines represent model\'s predicted probabilities.',
+    x = 'Density of Quercus Trees',
+    y = 'Deer Infection Probability',
+    color = 'Fenced',
+    shape = 'Data Type',
+    linetype = 'Legend') +
+  scale_linetype_manual(values = c('Model Prediction' = 'solid')) + 
+  theme_minimal() +
+  theme(
+    legend.position = 'top',
+    legend.title = element_text(face = 'bold'),
+    legend.text = element_text(size = 10)
+  )
+
+deer_model_plot
+```
+\
+**Question 2:** Determine if these same factors affect Tb prevalence in boars.\
+- Model summary indicated that Fenced strongly affects the TB prevalence in boars. Anova output also supports this.\
+- The Pearson residuals and Residuals vs. Fitted Plot suggest that the boar model performs better than the deer model.\
+\
+``` {r binomial_glm_boar}
+# Load data set.
+boar <- read.table('Tbdeer.txt', header = TRUE, sep = '', stringsAsFactors = FALSE) # Load in Tbdeer.txt data set. Prevent the automatic conversion of string values to factors.
+glimpse(boar)
+
+# Remove rows with NA values in BoarPosTB or BoarSampledTB columns.
+boar_clean <- deer %>% drop_na(BoarPosTB, BoarSampledTB)
+
+# Create binomial generalized linear model.
+bi_boar_model <- glm(cbind(BoarPosTB, BoarSampledTB - BoarPosTB) ~ Fenced + QuercusTrees,
+                     data = boar_clean,
+                     family = quasibinomial)
+
+# Check for over dispersion.
+dev_ratio <- summary(bi_boar_model)$deviance / summary(bi_boar_model)$df.residual
+print(dev_ratio)
+
+# Check for over dispersion utilizing Pearson residuals.
+pearson_resid <- residuals(bi_boar_model, type = 'pearson')
+plot(pearson_resid, main = 'Pearson Residuals', ylab = 'Residuals')
+abline(h = c(-2, 2), col = 'red', lty = 2)
+
+# Summarize bi_boar_model.
+summary(bi_boar_model)
+
+# Compare fitted model to simpler model.
+anova(bi_boar_model, test = 'LRT')
+
+# Check residuals vs. fitted.
+plot(bi_boar_model, which = 1)
+
+# Create new data frame for generated predicted probabilities using bi_boar_model.
+boar_pred <- expand.grid(
+  QuercusTrees = seq(min(boar_clean$QuercusTrees), max(boar_clean$QuercusTrees), length.out = 100),
+  Fenced = c(0, 1)
+)
+
+# Generate predictions (on probability scale).
+boar_pred$pred_prob <- predict(bi_boar_model, boar_pred, type = 'response')
+
+# Plot infection probability vs. oak tree density.
+boar_model_plot <- ggplot(boar_clean, aes(x = QuercusTrees, y = BoarPosTB / BoarSampledTB, color = as.factor(Fenced))) +
+  geom_point(size = 2, alpha = 0.7, aes(shape = 'Actual Infection Rate')) + # Scatter plot of raw data.
+  geom_line(data = boar_pred, aes(x = QuercusTrees, y = pred_prob, color = as.factor (Fenced)), linewidth = 1) + # Fitted model predictions.
+  labs(
+    title = 'Boar TB Infection Probability vs Quercus Tree Density/Fenced Status',
+    subtitle = 'Points show actual infection rates, trend lines represent model\'s predicted probabilities.',
+    x = 'Density of Quercus Trees',
+    y = 'Boar Infection Probability',
+    color = 'Fenced',
+    shape = 'Data Type',
+    linetype = 'Legend') +
+  scale_linetype_manual(values = c('Model Prediction' = 'solid')) + 
+  theme_minimal() +
+  theme(
+    legend.position = 'top',
+    legend.title = element_text(face = 'bold'),
+    legend.text = element_text(size = 10)
+  )
+
+boar_model_plot
+```
+\
+**Question 3:** Make figure for each result. (See figures above.) Try to describe what you think it should look like.\
+- With the deer model, since the Fenced variable doesn't have a significant affect on deer infection, the model's predictive lines should look very similar and be in a similar place on the plot - which they do!\
+- With the boar model, since the Fenced variable does have a significant affect on boar infection, the model's predictive lines for fenced vs unfenced should be different or in different areas of the plot. The fenced predictive line has as significantly higher infection probability which logically make sense. Animals contained together would be more likely to transmit infections to one another.\
+\
+**Hajduk & McGill Readings**\
+``` {r Hajduk_reading}
+## authors: Gabriela K Hajduk, based on workshop developed by Liam Bailey
+## contact details: gkhajduk.github.io; email: gkhajduk@gmail.com
+## date: 2017-03-09
+##
+
+###---- Explore the data -----###
+
+## load the data and have a look at it
+
+load("dragons.RData")
+
+head(dragons)
+
+## Let's say we want to know how the body length affects test scores.
+
+## Have a look at the data distribution:
+
+hist(dragons$testScore)  # seems close to normal distribution - good!
+
+## It is good practice to standardize your explanatory variables before proceeding - you can use scale() to do that:
+
+dragons$bodyLength2 <- scale(dragons$bodyLength)
+
+## Back to our question: is test score affected by body length?
+
+###---- Fit all data in one analysis -----###
+
+## One way to analyse this data would be to try fitting a linear model to all our data, ignoring the sites and the mountain ranges for now.
+
+library(lme4)
+
+basic.lm <- lm(testScore ~ bodyLength2, data = dragons)
+
+summary(basic.lm)
+
+## Let's plot the data with ggplot2
+
+library(ggplot2)
+
+ggplot(dragons, aes(x = bodyLength, y = testScore)) +
+  geom_point()+
+  geom_smooth(method = "lm")
+
+
+### Assumptions?
+
+## Plot the residuals - the red line should be close to being flat, like the dashed grey line
+
+plot(basic.lm, which = 1)  # not perfect, but look alright
+
+## Have a quick look at the  qqplot too - point should ideally fall onto the diagonal dashed line
+
+plot(basic.lm, which = 2)  # a bit off at the extremes, but that's often the case; again doesn't look too bad
+
+
+## However, what about observation independence? Are our data independent?
+## We collected multiple samples from eight mountain ranges
+## It's perfectly plausible that the data from within each mountain range are more similar to each other than the data from different mountain ranges - they are correlated. Pseudoreplication isn't our friend.
+
+## Have a look at the data to see if above is true
+boxplot(testScore ~ mountainRange, data = dragons)  # certainly looks like something is going on here
+
+## We could also plot it colouring points by mountain range
+ggplot(dragons, aes(x = bodyLength, y = testScore, colour = mountainRange))+
+  geom_point(size = 2)+
+  theme_classic()+
+    theme(legend.position = "none")
+
+## From the above plots it looks like our mountain ranges vary both in the dragon body length and in their test scores. This confirms that our observations from within each of the ranges aren't independent. We can't ignore that.
+
+## So what do we do?
+
+###----- Run multiple analyses -----###
+
+
+## We could run many separate analyses and fit a regression for each of the mountain ranges.
+
+## Lets have a quick look at the data split by mountain range
+## We use the facet_wrap to do that
+
+ggplot(aes(bodyLength, testScore), data = dragons) + geom_point() +
+    facet_wrap(~ mountainRange) +
+    xlab("length") + ylab("test score")
+```

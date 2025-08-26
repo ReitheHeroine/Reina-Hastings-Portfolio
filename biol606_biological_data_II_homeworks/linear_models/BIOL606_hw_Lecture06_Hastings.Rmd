@@ -1,0 +1,348 @@
+---
+title: "BIOL606_hw_Lecture06_Hastings"
+output: html_document
+date: "2025-02-10"
+---
+```{r setup, include=FALSE}
+# Load libraries.
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(ggfortify)
+
+rm(list=ls()) # Clear environment.
+```
+
+# Homework Lecture 06\
+**Question 1:** Is the total number of fruits produced affected by herbivore damage to leaves and hand-pollination treatments?\
+``` {r general_LM}
+# Load dataset.
+cucumber_damage <- read.csv('lecture6_NEWcucumberdamage.csv') # Load in lecture6_NEWcucumberdamage.csv data set.
+glimpse(cucumber_damage)
+
+# ===== General Linear Model =====
+
+# Create general linear model.
+model_1 <- lm(totalfruits ~ leafdamage + pollination, data = cucumber_damage)
+
+# Generate diagnostic plots to check model_1 assumptions.
+autoplot(model_1)
+
+# Perform ANOVA test on model_1 significance of predictors.
+anova(model_1)
+
+# Display summary of model_1.
+summary(model_1)
+```
+
+## General Linear Model (model_1) Diagonostics
+**Autoplot Output**\
+1) Residuals vs Fitted: The clustering of points to the right of the plot suggest some non-linearity in the data.\
+2) Normal Q-Q: Residuals are approximately normal, some points on the tails (especially the right) suggest potential outliers.\
+3) Scale-Location: The trend line slightly increases, suggesting an increased variance in residuals as the fitted values increase.\
+4) Residuals vs Leverage: Most points have a low leverage but some outlier points (35, 75, 66) have an unusually high leverage.\
+\
+**ANOVA Output**\
+- Leaf damage has a significant effect on total fruits (p-value = 1.042e-07).\
+- Pollination type has no significant effect on total fruits (p-value = 0.9701)\
+- The residual Sum Sq = 12730.9 indicating a large portion of variation remains unexplained.\
+\
+**Summary of model_1**\
+- Median residual is close to 0 - model doesn't have a strong bias.\
+- Range of residuals suggests larger deviations.\
+- For every decrease in 1 unit of leaf damage, the expected number of fruits goes down by ~0.2. The p-value = 1.04e-07 - this effect is significant.\
+- Pollination does not have a significant effect.\
+- The Multiple R-squared suggests only ~13.9% of the variance is explained by the model.\
+- Overall p-value (6.911e-07) suggests the model is statistically significant.\
+\
+``` {r generalized_LM}
+# Load dataset.
+cucumber_damage <- read.csv('lecture6_NEWcucumberdamage.csv') # Load in lecture6_NEWcucumberdamage.csv data set.
+glimpse(cucumber_damage)
+
+# ===== Generalized Linear Model =====
+
+# Create generalized linear model.
+model_2 <- glm(totalfruits ~ leafdamage + pollination,
+               data = cucumber_damage,
+               family = quasipoisson)
+
+# Generate diagnostic plots to check model_2 assumptions.
+autoplot(model_2)
+
+# Perform ANOVA test on model_2 significance of predictors.
+anova(model_2)
+
+# Display summary of model_2.
+summary(model_2)
+```
+## Generalized Linear Model (model_2) Diagnostics\
+**Autoplot Output**\
+1) Residuals vs Fitted: The clustering of points to the right of the plot suggest some non-linearity in the data.\
+2) Normal Q-Q: Residuals are approximately normal, some points on the tails (especially the right) suggest potential outliers.\
+3) Scale-Location: The trend line is mostly flat, roughtly a constant variance of residuals.\
+4) Residuals vs Leverage: Points tell to have low leverage but range more than the general linear model's plot. Some outlier points (65, 75, ?) have an unusually high leverage.\
+\
+**ANOVA Output**\
+- Leaf damage has an significant effect on total fruits (p-value = 2.461e-08).\
+- Pollination type has no significant effect on total fruits (p-value = 0.9818)\
+- The residual deviance = 1017.9 indicating a large portion of variation remains unexplained.\
+\
+**Summary of model_2**\
+- For every decrease in 1 unit of leaf damage, the expected number of fruits goes down by ~0.177. The p-value = <2e-16 - this effect is very significant.\
+- Pollination does not have a significant effect.\
+- The difference between the Null Deviance and Residual Deviance (170.1) suggests a little of the variance is explained by the model.\
+\
+**Question 2:** Make a figure of the results with separate lines for the two pollination treatments.
+``` {r results_general}
+predict(model_1, newdata = cucumber_damage, type = 'response')
+
+cucumber_damage$predicted_lm <- predict(model_1, newdata = cucumber_damage, type = 'response') # Force predictions to make 200 rows in cucumberdamage (only has 192 natively).
+
+# Compute predicted values for each model.
+cucumber_damage$predicted_lm <- predict(model_1, newdata = cucumber_damage, type = 'response') # General linear model (LM).
+
+# If there are NA predictions, fill them with the mean prediction.
+cucumber_damage$predicted_lm[is.na(cucumber_damage$predicted_lm)] <- mean(cucumber_damage$predicted_lm, na.rm = TRUE)
+
+cucumber_damage$predicted_qp <- predict(model_2, newdata = cucumber_damage, type = 'response') # Quasi-Poisson model.
+
+# If there are NA predictions, fill them with the mean prediction.
+cucumber_damage$predicted_lm[is.na(cucumber_damage$predicted_qp)] <- mean(cucumber_damage$predicted_qp, na.rm = TRUE)
+
+
+# ===== PLotting Results =====
+
+
+# Plot results for model_1.
+results_1 <- ggplot(cucumber_damage, aes(x = totalfruits, y = predicted_lm, color = pollination)) +
+  geom_point(alpha = 0.6, size = 2) +  # Scatter plot of actual vs. predicted values.
+  
+  # Add reference line with a custom linetype aesthetic.
+  geom_abline(aes(linetype = 'Perfect Prediction'), intercept = 0, slope = 1, color = 'black', size = 1) +
+  
+  # Separate smooth lines for each pollination treatment.
+  geom_smooth(data = subset(cucumber_damage, pollination == 'HP'), method = 'lm', se = FALSE, linetype = 'solid', size = 1) +  
+  geom_smooth(data = subset(cucumber_damage, pollination == 'NP'), method = 'lm', se = FALSE, linetype = 'dotted', size = 1) +  
+  scale_color_manual(
+    name = 'Pollination Type',
+    values = c('HP' = 'blue', 'NP' = 'red'),
+    labels = c('HP' = 'Hand Pollination', 'NP' = 'Natural Pollination')
+  ) +
+  
+  # Manually define the line type legend.
+  scale_linetype_manual(
+    name = 'Reference Line',  # Legend title for linetypes
+    values = c('Perfect Prediction' = 'dashed')  # Assign dashed style to "Perfect Prediction"
+  ) +
+  labs(
+    title = 'General Linear Model: Predicted vs Actual Total Fruits',
+    x = 'Actual Total Fruits',
+    y = 'Predicted Total Fruits'
+  ) +
+  theme_minimal()
+
+results_1
+
+# Define min/max values for totalfruits to keep the line within the data range
+min_fruit <- min(cucumber_damage$totalfruits, na.rm = TRUE)
+max_fruit <- max(cucumber_damage$totalfruits, na.rm = TRUE)
+
+# Plot results for the Quasi-Poisson model
+results_2 <- ggplot(cucumber_damage, aes(x = totalfruits, y = predicted_qp, color = pollination)) +
+  geom_point(alpha = 0.6, size = 2) +  # Scatter plot of actual vs. predicted values.
+
+  # Add restricted reference line using geom_segment()
+  geom_segment(aes(linetype = 'Perfect Prediction'), x = min_fruit, y = min_fruit, xend = max_fruit, yend = max_fruit,
+               color = 'black', size = 1) +  
+
+  # Separate smooth lines for each pollination treatment
+  geom_smooth(data = subset(cucumber_damage, pollination == 'HP'), method = 'lm', se = FALSE, linetype = 'solid', size = 1) +  
+  geom_smooth(data = subset(cucumber_damage, pollination == 'NP'), method = 'lm', se = FALSE, linetype = 'dotted', size = 1) +  
+
+  scale_color_manual(
+    name = 'Pollination Type',
+    values = c('HP' = 'blue', 'NP' = 'red'),
+    labels = c('HP' = 'Hand Pollination', 'NP' = 'Natural Pollination')
+  ) +
+
+  scale_linetype_manual(
+    name = 'Reference Line',
+    values = c('Perfect Prediction' = 'dashed')
+  ) +
+
+  labs(
+    title = 'Quasi-Poisson Model: Predicted vs Actual Total Fruits',
+    x = 'Actual Total Fruits',
+    y = 'Predicted Total Fruits (Quasi-Poisson)'
+  ) +
+  
+  theme_minimal()
+
+results_2  # Display the plot
+```
+\
+**Question 3:** Repeat steps 1 & 2 but use the categorical treatment 'herbivory'.
+``` {r general_LM_herbivory}
+# Load dataset.
+cucumber_damage <- read.csv('lecture6_NEWcucumberdamage.csv') # Load in lecture6_NEWcucumberdamage.csv data set.
+glimpse(cucumber_damage)
+
+# ===== General Linear Model =====
+
+# Create general linear model.
+model_3 <- lm(totalfruits ~ herbivory + pollination, data = cucumber_damage)
+
+# Generate diagnostic plots to check model_3 assumptions.
+autoplot(model_3)
+
+# Perform ANOVA test on model_3 significance of predictors.
+anova(model_3)
+
+# Display summary of model_3.
+summary(model_3)
+```
+## General Linear Model (model_3) Diagonostics
+**Autoplot Output**\
+1) Residuals vs Fitted: Residuals are clustered around fitted values likely due to herbivory being a categorical variable. No clear curvature suggesting linearity.\
+2) Normal Q-Q: Residuals are approximately normal, some points on the tails suggest potential outliers.\
+3) Scale-Location: The trend line curves slightly, suggesting an increased variance in residuals as the fitted values increase.\
+4) Residuals vs Leverage: Almost all points have a very low leverage with some outliers but the outliers still don't have a very high leverage.\
+\
+**ANOVA Output**\
+- Herbivory has a significant effect on total fruits (p-value = 7.039e-07).\
+- Pollination type has no significant effect on total fruits.\
+- The residual Sum Sq = 12512.2 indicating a large portion of variation remains unexplained.\
+\
+**Summary of model_3**\
+- Median residual is close to 0 - model doesn't have a strong bias.\
+- Range of residuals is not very extreme.\
+- Baseline condition: H (high herbivory) & HP (hand pollination).
+- Low herbivory (compared to H) produces 6.87 more fruits than H (significant, p < 0.001).
+- Medium herbivory (compared to H) produces 6.06 more fruits than H (significant, p < 0.001).
+- Other herbivory (compared to H) produces 9.43 more fruits than H (significant, p < 0.001).
+- Higher herbivory reduces fruit production.
+- Pollination does not have a significant effect.\
+- The Multiple R-squared suggests only ~15.42% of the variance is explained by the model.\
+- Overall p-value (2.45e-06) suggests the model is statistically significant.\
+\
+``` {r generalized_LM_herbivory}
+# Load dataset.
+cucumber_damage <- read.csv('lecture6_NEWcucumberdamage.csv') # Load in lecture6_NEWcucumberdamage.csv data set.
+glimpse(cucumber_damage)
+
+# ===== Generalized Linear Model =====
+
+# Create generalized linear model.
+model_4 <- glm(totalfruits ~ herbivory + pollination,
+               data = cucumber_damage,
+               family = quasipoisson)
+
+# Generate diagnostic plots to check model_4 assumptions.
+autoplot(model_4)
+
+# Perform ANOVA test on model_4 significance of predictors.
+anova(model_4)
+
+# Display summary of model_4.
+summary(model_4)
+```
+## Generalized Linear Model (model_4) Diagnostics\
+**Autoplot Output**\
+1) Residuals vs Fitted: The clustering of points to the right of the plot suggest some non-linearity in the data.\
+2) Normal Q-Q: Residuals are approximately normal, some points on the tails (especially the right) suggest potential outliers.\
+3) Scale-Location: The trend line is mostly flat, roughtly a constant variance of residuals.\
+4) Residuals vs Leverage: Points tell to have low leverage but range more than the general linear model's plot. Some outlier points (35, 48, 75) have an unusually high leverage.\
+\
+**ANOVA Output**\
+- Herbivory has an significant effect on total fruits (p-value = 1.033e-07).\
+- Pollination type has no significant effect on total fruits (p-value = 0.9407)\
+- The residual deviance for the predictors doesn't reduce the overall residual deviance by much, indicating a large portion of variation remains unexplained.\
+\
+**Summary of model_4**\
+- Median residual is close to 0 - model doesn't have a strong bias.\
+- Higher herbivory reduces fruit production (p-value = 1.03e-07).
+- Pollination does not have a significant effect.\
+- Residual deviance is high (999.25), indicating a lot of variation remain unexplained.
+- The Multiple R-squared suggests only ~15.42% of the variance is explained by the model.\
+- Overall p-value (2.45e-06) suggests the model is statistically significant.\
+\
+Make a figure of the results with separate lines for the two pollination treatments.\
+``` {r results_generalized}
+# Compute predicted values for each model.
+cucumber_damage$predicted_lm_herb <- predict(model_3, newdata = cucumber_damage, type = 'response')  # General Linear Model (LM).
+cucumber_damage$predicted_qp_herb <- predict(model_4, newdata = cucumber_damage, type = 'response')  # Quasi-Poisson Model (GLM).
+
+# If there are NA predictions, fill them with the mean prediction.
+cucumber_damage$predicted_lm_herb[is.na(cucumber_damage$predicted_lm_herb)] <- mean(cucumber_damage$predicted_lm_herb, na.rm = TRUE)
+cucumber_damage$predicted_qp_herb[is.na(cucumber_damage$predicted_qp_herb)] <- mean(cucumber_damage$predicted_qp_herb, na.rm = TRUE)
+
+# Define min/max values for totalfruits to keep the line within the data range.
+min_fruit <- min(cucumber_damage$totalfruits, na.rm = TRUE)
+max_fruit <- max(cucumber_damage$totalfruits, na.rm = TRUE)
+
+# Plot results for the general linear model (LM)
+results_3 <- ggplot(cucumber_damage, aes(x = totalfruits, y = predicted_lm_herb, color = pollination)) +
+  geom_point(alpha = 0.6, size = 2) +  # Scatter plot of actual vs. predicted values.
+
+  # Add reference line for perfect prediction.
+  geom_abline(aes(linetype = 'Perfect Prediction'), intercept = 0, slope = 1, color = 'black', size = 1) +  
+
+  # Separate smooth lines for each pollination treatment.
+  geom_smooth(data = subset(cucumber_damage, pollination == 'HP'), method = 'lm', se = FALSE, linetype = 'solid', size = 1) +  
+  geom_smooth(data = subset(cucumber_damage, pollination == 'NP'), method = 'lm', se = FALSE, linetype = 'dotted', size = 1) +  
+
+  scale_color_manual(
+    name = 'Pollination Type',
+    values = c('HP' = 'blue', 'NP' = 'red'),
+    labels = c('HP' = 'Hand Pollination', 'NP' = 'Natural Pollination')
+  ) +
+
+  scale_linetype_manual(
+    name = 'Reference Line',
+    values = c('Perfect Prediction' = 'dashed')
+  ) +
+
+  labs(
+    title = 'General Linear Model (Herbivory): Predicted vs Actual Total Fruits',
+    x = 'Actual Total Fruits',
+    y = 'Predicted Total Fruits (LM)'
+  ) +
+  
+  theme_minimal()
+
+results_3
+
+# Plot results for the Quasi-Poisson model.
+results_4 <- ggplot(cucumber_damage, aes(x = totalfruits, y = predicted_qp_herb, color = pollination)) +
+  geom_point(alpha = 0.6, size = 2) +  # Scatter plot of actual vs. predicted values.
+
+  # Add restricted reference line using geom_segment().
+  geom_segment(aes(linetype = 'Perfect Prediction'), x = min_fruit, y = min_fruit, xend = max_fruit, yend = max_fruit,
+               color = 'black', size = 1) +  
+
+  # Separate smooth lines for each pollination treatment.
+  geom_smooth(data = subset(cucumber_damage, pollination == 'HP'), method = 'lm', se = FALSE, linetype = 'solid', size = 1) +  
+  geom_smooth(data = subset(cucumber_damage, pollination == 'NP'), method = 'lm', se = FALSE, linetype = 'dotted', size = 1) +  
+
+  scale_color_manual(
+    name = 'Pollination Type',
+    values = c('HP' = 'blue', 'NP' = 'red'),
+    labels = c('HP' = 'Hand Pollination', 'NP' = 'Natural Pollination')
+  ) +
+
+  scale_linetype_manual(
+    name = 'Reference Line',
+    values = c('Perfect Prediction' = 'dashed')
+  ) +
+
+  labs(
+    title = 'Quasi-Poisson Model (Herbivory): Predicted vs Actual Total Fruits',
+    x = 'Actual Total Fruits',
+    y = 'Predicted Total Fruits (Quasi-Poisson)'
+  ) +
+  
+  theme_minimal()
+
+results_4
+```

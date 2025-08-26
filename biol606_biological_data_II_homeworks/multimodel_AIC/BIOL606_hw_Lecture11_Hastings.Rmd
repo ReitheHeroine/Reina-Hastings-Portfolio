@@ -1,0 +1,152 @@
+---
+title: 'BIOL606_hw_Lecture_11_Hastings'
+output: html_document
+date: '2025-03-12'
+---
+
+```{r setup, include=FALSE}
+# Load libraries.
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(ggfortify)
+library(lme4)
+library(car)
+library(MuMIn)
+
+rm(list=ls()) # Clear environment.
+```
+
+# Homework Lecture 11
+
+### Lecture Notes
+A parsimonious model is the simplest model that adequately explains the data, finding a balance between fit and complexity and only including necessary variables.
+
+If models are within 2 AIC units of each other, they are very similar. Within 5 units is quite similar. Over 10 units is different.
+
+### Question 1: Draw on your extensive personal knowledge of bird nesting biology to come up with 3 hypotheses about how the explanatory variables might affect nestling bodymass. The hypotheses can have one or more IVs (try to come up with a mix).
+
+Hypothesis A: As feedings per day increase, the body mass of the nestlings increases.
+
+Hypothesis B: As the height of the nest increases, the body mass of the nestlings increases.
+
+Hypothesis C: The body mass of the nestlings is significantly related to the type of tree their nest is located in.
+
+``` {r data}
+offspring <- read_csv('offspring_mass.csv') # Read in data from local directory.
+
+# Convert categorical variables to factors.
+offspring$plant <- as.factor(offspring$plant)
+
+# Quality check.
+# Check column names.
+colnames(offspring)
+
+# Check data set structure.
+str(offspring)
+
+# Check for missing values.
+colSums(is.na(offspring))
+```
+
+### Question 2: Build a glm() model for each hypothesis and save it as an object, e.g., modA, modB, modC, etc.  Also build a model with only an intercept (~ 1) as the IV.
+
+``` {r models}
+# Build a glm() model for each hypothesis.
+
+# Model for hypothesis A.
+modA <- glm(offspring_mass ~ feedings_per_day, data = offspring)
+
+# Check model diagnostics.
+summary(modA)
+Anova(modA)
+
+# Model for hypothesis B.
+modB <- glm(offspring_mass ~ height, data = offspring)
+
+# Check model diagnostics.
+summary(modB)
+Anova(modB)
+
+# Model for hypothesis C.
+modC <- glm(offspring_mass ~ plant, data = offspring)
+
+# Check model diagnostics.
+summary(modC)
+Anova(modC)
+
+# Model for null hypothesis.
+mod_null <- glm(offspring_mass ~ 1, data = offspring)
+
+# Check model diagnostics.
+summary(mod_null)
+
+# Used base anova() since Anova() was having issues handling the simpler model.
+anova(mod_null)
+```
+
+### Question 3: Compare these models.
+
+``` {r compare_tbls}
+# Create list of candidates models.
+Cand.mods <- list(modA, modB, modC, mod_null)
+
+# Perform model selection using AIC.
+aictab <- model.sel(Cand.mods)
+
+# Display AIC comparison.
+aictab
+```
+
+### Question 4: Draw conclusions from the model selection output. Which of your hypotheses is/are best supported?
+
+All three models have residuals that appear to be randomly scattered around 0 suggesting homoscedasticity in the data. It also suggests the model captures the relationship well.
+
+Model A which explores hypothesis A (feedings per day is positively correlated with offspring mass) has the lowest AIC (506.9) and highest model weight (0.999).
+
+Model A also showed a very significant p-value in the model summary() and Anova() output.
+
+Models B, C, and null are all similarly bad (AICs ~ 523) at predicting offspring mass. Height of nest and tree type have no significant effect on offspring mass.
+
+``` {r results}
+# ===== Create residual plots for each model ====
+# Arrange plots in a 2x2 grid.
+par(mfrow = c(2,2))
+
+plot(residuals(modA), main = 'Residuals: modA', ylab = 'Residuals', xlab = 'Index')
+abline(h = 0, col = 'red')
+
+plot(residuals(modB), main = 'Residuals: modB', ylab = 'Residuals', xlab = 'Index')
+abline(h = 0, col = 'red')
+
+plot(residuals(modC), main = 'Residuals: modC', ylab = 'Residuals', xlab = 'Index')
+abline(h = 0, col = 'red')
+
+plot(residuals(mod_null), main = 'Residuals: mod_null', ylab = 'Residuals', xlab = 'Index')
+abline(h = 0, col = 'red')
+
+# ===== Visualize AIC values with bar chart =====
+
+# Create a data frame for AIC values.
+aic_data <- data.frame(
+  Model = c('modA', 'modB', 'modC', 'mod_null'),
+  AICc = c(506.9, 523.9, 526.2, 522.8)
+)
+
+print(range(aic_data$AICc))
+
+# Plot AIC values.
+AIC_bar_chart <- ggplot(aic_data, aes(x=Model, y=AICc, fill=Model)) +
+  geom_bar(stat='identity', color='black') +
+  theme_minimal() +
+  labs(title='AIC Model Comparison', y = 'AIC Value') +
+  theme(legend.position='none') +
+  geom_text(aes(label=round(AICc, 1)), vjust=1.5) +
+  scale_y_continuous(limits=c(500, 530), breaks=seq(500, 530, 5))
+
+# I could not get this line to work for the life of me!!
+#  scale_y_continuous(limits=c(500, 530), breaks=seq(500, 530, 5))
+
+AIC_bar_chart
+
+```

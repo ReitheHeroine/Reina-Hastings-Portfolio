@@ -1,0 +1,389 @@
+---
+title: "BIOL606_hw_Lecture04_Hastings"
+output: html_document
+date: "2025-02-03"
+---
+
+## Lecture 04 Homework
+``` {r setup}
+rm(list=ls()) # Clear environment.
+
+# Load libraries.
+library(readr)
+library(tidyverse)
+
+# Check for 'lecture4_flowercounts.csv' and 'lecture4_cucumberdamage.csv' data set in working directory.
+if (file.exists('lecture4_flowercounts.csv')) {
+  message('lecture4_flowercounts.csv data file loaded successfully!')
+  } else {
+    stop('ERROR: The file lecture4_flowercounts.csv was not found in the working directory: ', getwd())
+  }
+
+flowercounts <- read.csv('lecture4_flowercounts.csv') # Load in lecture4_flowercounts.csv data set.
+glimpse(flowercounts)
+
+if (file.exists('lecture4_cucumberdamage.csv')) {
+  message('lecture4_cucumberdamage.csv data file loaded successfully!')
+  } else {
+    stop('ERROR: The file lecture4_cucumberdamage.csv was not found in the working directory: ', getwd())
+  }
+
+cucumberdamage <- read.csv('lecture4_cucumberdamage.csv') # Load in lecture4_cucumberdamage.csv data set.
+glimpse(cucumberdamage)
+```
+\
+Question 1: Determine the total number (sum) of male and female flowers combined on each plant (i.e., total number of flowers, males + females).\
+-> as.factor() encodes character or numeric data as categorical groups. This can optimize memory usage as factors use integer levels instead of full strings. This can also be useful for statistical modeling or improved visualization.\
+-> When an ID is a #, we want R to understand that it is a factor, not a continous variable with relationships to one another.\
+``` {r question_1}
+flowercounts$plant <- as.factor(flowercounts$plant) # Encode flowercounts$plant variable into a categorical variable.
+```
+\
+Question 2: Determine the total number (sum) of male and female flowers combined on each plant (i.e., total number of flowers, males + females).
+``` {r question_2}
+flowercounts$sumflowers <- flowercounts$F + flowercounts$M # Create flowercounts$sumflowers that is a sum of male and female flower counts.
+
+flowercounts %>% slice_sample(n = 10) # Check a random 10 rows to check new variable.
+```
+\
+Question 3: Join the total flower number count with the cucumberdamage data frame.\
+Notes:\
+-> flowercounts has duplicate values in the key column (plant) as it includes the same plant being measured at different time points. cucumberdamage only has one row per plant. left_join() will duplicate the new column values across all matching rows in flowercounts.
+``` {r question_3}
+cucumberdamage$plant <- as.factor(cucumberdamage$plant) # Encode cucumberdamage$plant variable into a categorical variable to match the flowercounts$plant data type.
+
+sum_per_plant <- flowercounts %>%
+  filter(!is.na(plant)) %>% # Remove rows with plant variable is NA.
+  group_by(plant) %>% # Group the data by the 'plant' column.
+  summarise(total_flowers = sum(sumflowers, na.rm = TRUE)) # For each plant, sum up 'sumflowers', ignoring NAs.
+
+sum_per_plant %>% slice_sample(n = 10) # Check a random 10 rows to check new variable.
+
+sum_per_plant %>% select(plant, total_flowers)
+
+cucumberdamage <- left_join(cucumberdamage, (sum_per_plant %>% select(plant, total_flowers)), by = 'plant') # Join sum_flowers$sum_per_plant to cucumberdamage using plant variable as the common key column.
+
+cucumberdamage %>% slice_sample(n = 10) # Check a random 10 rows to check modified data frame.
+```
+\
+Question 4: Use a t-test to determine if the hand-pollination treatment affects flower number. In your annotation, explain how you interpret the result of the t-test.\
+\
+-> t-stat: -0.45219 - Small absolute value suggests weak evidence of a difference.\
+-> degrees of freedom = 196.94 - DoF is 196.94 instead of 199 because Welch's t-test was used which assumes the variables have unequal variances.\
+-> p-value = 0.6516 - Not statistically significant difference.\
+-> 95% confidence interval = -50.2 - 31.5, includes zero which suggests no strong difference between groups.\
+-> hand-pollinated group has a mean flower count of 273.21\
+-> not-pollinated (unclear if not-pollinated means not pollinated at all or just not hand-pollinated) group has a mean flower count of 282.58\
+\
+The results of the t-test lead us to reject the alternate hypothesis (accept the null hypothesis). Hand-pollination likely does not affect flower numbers.\
+``` {r question_4}
+# Run independent t-test.
+t_test_result <- t.test(total_flowers ~ pollination, data = cucumberdamage)
+
+print(t_test_result)
+```
+\
+Question 5: Make a figure with ggplot depicting flower number and pollination treatment (make it look pretty).
+``` {r question_5}
+# Create pollination_flower data frame that includes plant IDs, flower counts, and pollination type.
+pollination_flower <- cucumberdamage %>%
+  group_by(plant, pollination) %>% # Group by plant ID and pollination type.
+  summarise(pollination_flower = sum(total_flowers, na.rm = TRUE))
+
+pollination_flower %>% slice_sample(n = 10) # Check a random 10 rows to check new variable.
+
+pol_flower <- ggplot(cucumberdamage, aes(x = pollination, y = total_flowers, fill = pollination)) + # Creates base ggplot object, x axis as pollination type, y as total # of flowers (per plant), and bars colored by pollination type.
+  geom_col(position = 'dodge') + # Creates bar chart with height represents the y (total # of flowers).
+  labs(title = 'Total Flower Count vs. Pollination Treatment',
+       x = 'Pollination Treatment',
+       y = 'Total Flowers',
+       fill = 'Pollination') +
+  scale_fill_manual(labels = c('HP' = 'Hand Pollination', 'NP' = 'Natural Pollination'),
+                    values = c('HP' = 'blue', 'NP' = 'orange')) # Label and color pollination types to be more readable.
+  theme_minimal() # Removes background grid lines.
+
+pol_flower
+```
+\
+Question 6: On each plant, the lengths of 3 leaves were measured (leaf1length, leaf2length, leaf3length in the cucumberdamage dataframe). First, use dplyr to calculate mean leaf length of each plant. Then, test the hypothesis that hand-pollination decreases leaf size.\
+\
+-> t-stat: -0.33135 - Small absolute value suggests weak evidence of a difference.\
+-> p-value = 0.7407 - Not statistically significant difference.\
+-> 95% confidence interval = -35.8 - 25.5, includes zero which suggests no strong difference between groups.\
+\
+The results of the t-test lead us to reject the alternate hypothesis (accept the null hypothesis). Hand-pollination likely does not affect leaf length.
+``` {r question_6}
+cucumberdamage <- cucumberdamage %>%
+  mutate(mean_leaf_length = rowMeans(across(c(leaf1length, leaf2length, leaf3length)), na.rm = TRUE))
+# mutate() adds new new column mean_leaf_length calculated from leaf1length, leaf2length, leaf3length.
+# across(c(leaf1length, leaf2length, leaf3length)) selects the three leaf length columns.
+# rowMeans(...) calculates the average value across columns for each row.
+
+cucumberdamage %>% slice_sample(n = 10) # Check a random 10 rows to check new variable.
+
+# Run independent t-test for mean_leaf_length and pollination.
+t_test_result <- t.test(mean_leaf_length ~ pollination, data = cucumberdamage)
+
+t_test_result
+```
+\
+Question 7: Make a ggplot figure illustrating the results of leaf length vs hand pollination.
+``` {r question_7}
+pol_leaf <- ggplot(cucumberdamage, aes(x = pollination, y = mean_leaf_length, fill = pollination)) + # Creates base ggplot object, x axis as pollination type, y as total # of flowers (per plant), and bars colored by pollination type.
+  geom_col(position = 'dodge') + # Creates bar chart with height represents the y (total # of flowers).
+  labs(title = 'Mean Leaf Length vs. Pollination Treatment',
+       x = 'Pollination Treatment',
+       y = 'Mean Leaf Length (cm)',
+       fill = 'Pollination') +
+  scale_fill_manual(labels = c('HP' = 'Hand Pollination', 'NP' = 'Natural Pollination'),
+                    values = c('HP' = 'blue', 'NP' = 'orange')) + # Label and color pollination types to be more readable.
+  theme_minimal() # Removes background grid lines.
+
+pol_leaf
+```
+\
+# Beckerman et al. Ch 5
+``` {r Beckerman_reading_ch5}
+# ==============================
+# Chapter 5: Statistical Analysis in R
+# Beckerman et al. (2017)
+# ==============================
+
+# Clear environment
+rm(list = ls())
+
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(ggfortify)
+
+# ==============================
+# 5.2 χ² Contingency Table Analysis
+# ==============================
+
+# Load ladybirds dataset
+lady <- read.csv("ladybirds_morph_colour.csv")
+
+# Check data structure
+glimpse(lady)
+
+# Summarize data
+totals <- lady %>%
+  group_by(Habitat, morph_colour) %>%
+  summarise(total.number = sum(number))
+
+# Plot data
+ggplot(totals, aes(x = Habitat, y = total.number, fill = morph_colour)) +
+  geom_bar(stat = 'identity', position = 'dodge')
+
+# Fix colors
+ggplot(totals, aes(x = Habitat, y = total.number, fill = morph_colour)) +
+  geom_bar(stat = 'identity', position = 'dodge') +
+  scale_fill_manual(values = c(black = "black", red = "red"))
+
+# Prepare data for χ² test
+lady.mat <- xtabs(number ~ Habitat + morph_colour, data = lady)
+
+# Run χ² test
+chisq.test(lady.mat)
+
+# ==============================
+# 5.3 Two-Sample t-Test
+# ==============================
+
+# Load ozone dataset
+ozone <- read.csv("ozone.csv")
+
+# Check structure
+glimpse(ozone)
+
+# Plot data
+ggplot(ozone, aes(x = Ozone)) +
+  geom_histogram(binwidth = 10) +
+  facet_wrap(~ Garden.location, ncol = 1) +
+  theme_bw()
+
+# Perform t-test
+t.test(Ozone ~ Garden.location, data = ozone)
+
+# ==============================
+# 5.5 Simple Linear Regression
+# ==============================
+
+# Load plant growth dataset
+plant_gr <- read.csv("plant.growth.rate.csv")
+
+# Check structure
+glimpse(plant_gr)
+
+# Plot data
+ggplot(plant_gr, aes(x = soil.moisture.content, y = plant.growth.rate)) +
+  geom_point() +
+  ylab("Plant Growth Rate (mm/week)") +
+  theme_bw()
+
+# Fit linear model
+model_pgr <- lm(plant.growth.rate ~ soil.moisture.content, data = plant_gr)
+
+# Check assumptions
+autoplot(model_pgr, smooth.colour = NA)
+
+# Interpret the model
+anova(model_pgr)
+summary(model_pgr)
+
+# Plot regression line
+ggplot(plant_gr, aes(x = soil.moisture.content, y = plant.growth.rate)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  ylab("Plant Growth Rate (mm/week)") +
+  theme_bw()
+
+# ==============================
+# 5.6 One-Way ANOVA
+# ==============================
+
+# Load Daphnia dataset
+daphnia <- read.csv("Daphniagrowth.csv")
+
+# Check structure
+glimpse(daphnia)
+
+# Plot data
+ggplot(daphnia, aes(x = parasite, y = growth.rate)) +
+  geom_boxplot() +
+  theme_bw() +
+  coord_flip()
+
+# Fit ANOVA model
+model_grow <- lm(growth.rate ~ parasite, data = daphnia)
+
+# Check assumptions
+autoplot(model_grow, smooth.colour = NA)
+
+# Run ANOVA
+anova(model_grow)
+
+# Interpret model
+summary(model_grow)
+
+# Summarize means for each group
+sumDat <- daphnia %>%
+  group_by(parasite) %>%
+  summarise(meanGR = mean(growth.rate))
+print(sumDat)
+```
+\
+# Beckerman et al. Ch 6
+``` {r Beckerman_reading_ch6}
+# Load required libraries
+library(tidyverse)
+library(ggplot2)
+library(broom)
+library(ggfortify)
+
+# Load and inspect the Two-Way ANOVA data (Cow Growth Data)
+growth.moo <- read.csv("growth.csv")
+
+# Check structure of the data
+glimpse(growth.moo)
+
+growth.moo <- growth.moo %>%
+  mutate(supplement = factor(supplement)) %>%  # Convert to factor
+  mutate(supplement = relevel(supplement, ref = "control"))  # Relevel with "control" as baseline
+
+# Relevel the supplement factor to set "control" as the reference level
+growth.moo <- mutate(growth.moo, supplement = relevel(supplement, ref="control"))
+
+# Check levels of the categorical variables
+levels(growth.moo$diet)
+levels(growth.moo$supplement)
+
+# Summarize data: mean growth per diet & supplement combination
+sumMoo <- growth.moo %>%
+  group_by(diet, supplement) %>%
+  summarise(meanGrow = mean(gain), .groups = "drop")
+
+# Plot interaction between diet and supplement
+ggplot(sumMoo, aes(x = supplement, y = meanGrow, colour = diet, group = diet)) +
+  geom_point() +
+  geom_line() +
+  theme_bw()
+
+# Fit the Two-Way ANOVA model with interaction
+model_cow <- lm(gain ~ diet * supplement, data = growth.moo)
+
+# Check assumptions using diagnostic plots
+autoplot(model_cow, smooth.colour = NA)
+
+# Get ANOVA table and interpret results
+anova(model_cow)
+
+# Summary table with coefficients
+summary(model_cow)
+
+# Add standard error to the summary data
+sumMoo <- growth.moo %>%
+  group_by(diet, supplement) %>%
+  summarise(
+    meanGrow = mean(gain),
+    seGrow = sd(gain) / sqrt(n()), .groups = "drop"
+  )
+
+# Final interaction plot with error bars
+ggplot(sumMoo, aes(x = supplement, y = meanGrow, colour = diet, group = diet)) +
+  geom_point() +
+  geom_line() +
+  geom_errorbar(aes(ymin = meanGrow - seGrow, ymax = meanGrow + seGrow), width = 0.1) +
+  theme_bw()
+
+# ------------------------------------------------------------------------------
+# ANCOVA: Limpet Egg Production vs Density & Season
+# ------------------------------------------------------------------------------
+
+# Load Limpet Data
+limp <- read.csv("limpet.csv")
+
+# Check structure of the data
+glimpse(limp)
+
+# Initial scatter plot: Egg production vs. Density, colored by Season
+ggplot(limp, aes(x = DENSITY, y = EGGS, colour = SEASON)) +
+  geom_point() +
+  scale_color_manual(values = c(spring = "green", summer = "red")) +
+  theme_bw()
+
+# Fit ANCOVA Model (Eggs ~ Density * Season)
+limp.mod <- lm(EGGS ~ DENSITY * SEASON, data = limp)
+
+# Check assumptions with diagnostic plots
+autoplot(limp.mod, smooth.colour = NA)
+
+# ANOVA table for the ANCOVA model
+anova(limp.mod)
+
+# Summary of model coefficients
+summary(limp.mod)
+
+# Create new dataset for predictions (for plotting model fit)
+new.x <- expand.grid(DENSITY = seq(from = 8, to = 45, length.out = 10), SEASON = levels(limp$SEASON))
+
+# Ensure SEASON is a factor in new.x
+new.x <- expand.grid(DENSITY = seq(from = 8, to = 45, length.out = 10), 
+                     SEASON = factor(levels(limp$SEASON)))
+
+# Predict values with confidence intervals
+new.y <- predict(limp.mod, newdata = new.x, interval = 'confidence')
+
+# Combine predictions into a new dataframe
+addThese <- data.frame(new.x, new.y)
+addThese <- rename(addThese, EGGS = fit)
+
+# Final ANCOVA plot with fitted lines and confidence intervals
+ggplot(limp, aes(x = DENSITY, y = EGGS, colour = SEASON)) +
+  geom_point(size = 5) +
+  geom_smooth(data = addThese, aes(ymin = lwr, ymax = upr, fill = SEASON), stat = "identity") +
+  scale_colour_manual(values = c(spring = "green", summer = "red")) +
+  scale_fill_manual(values = c(spring = "green", summer = "red")) +
+  theme_bw()
+```

@@ -1,0 +1,112 @@
+---
+title: "BIOL606_hw_Lecture_07_Hastings"
+output: html_document
+date: "2025-02-17"
+---
+
+```{r setup, include=FALSE}
+# Load libraries.
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(ggfortify)
+library(car)
+
+rm(list=ls()) # Clear environment.
+```
+
+# Homework Lecture 07\
+**Question 1:** Is the data set balanced?\
+- The pollination and herbivory variables are balanced.\
+- The pollination and leaf damage variables are not perfectly balanced but the Chi-square test suggests the imbalance is not significant.\
+``` {r poisson_part_1}
+# Load dataset.
+cucumber_damage <- read.csv('lecture6_NEWcucumberdamage.csv') # Load in lecture6_NEWcucumberdamage.csv data set.
+glimpse(cucumber_damage)
+
+# ===== Check the balance of pollination and herbivory variables =====
+
+# Cross-tabulation of pollination and herbivory.
+table(cucumber_damage$pollination, cucumber_damage$herbivory)
+
+# Convert to proportions to see balance.
+prop.table(table(cucumber_damage$pollination, cucumber_damage$herbivory))
+
+# Perform a chi-square test to check for imbalance.
+chisq.test(table(cucumber_damage$pollination, cucumber_damage$herbivory))
+
+# ===== Check the balance of pollination and leaf damage variables =====
+
+# Cross-tabulation of pollination and leaf damage
+table(cucumber_damage$pollination, cucumber_damage$leafdamage)
+
+# Convert to proportions to see balance.
+prop.table(table(cucumber_damage$pollination, cucumber_damage$leafdamage))
+
+# Perform a chi-square test to check for imbalance.
+chisq.test(table(cucumber_damage$pollination, cucumber_damage$leafdamage))
+
+# Visualize the distribution of leaf damage between pollination types.
+ggplot(cucumber_damage, aes(x = pollination, y = leafdamage, fill = pollination)) +
+  geom_boxplot() +
+  theme_minimal()
+```
+\
+**Question 2:** Determine if pollination & leaf damage affect totalfruits, including an interaction.\
+``` {r poisson_part_2}
+
+# Create generalized linear model to examine the effects of pollination and leaf damage on total fruit counts.
+# Includes an interaction term to test if the effects of pollination on fruit count depends on the level of leaf damage.
+# Model accounts for over dispersion using a quasi-Poisson distribution.
+pol_leaf_fruit_model <- glm(totalfruits ~ pollination + leafdamage + pollination:leafdamage,
+                            data = cucumber_damage,
+                            family = quasipoisson)
+
+# Perform ANOVA (type I) with F-test.
+anova(pol_leaf_fruit_model, test = 'F')
+
+# Perform ANOVA (type III).
+options(contrasts = c('contr.sum', 'contr.poly')) # Adjust contrasts.
+Anova(pol_leaf_fruit_model, type = 3)
+options(contrasts = c('contr.treatment', 'contr.poly')) # Reset contrasts.
+
+# Generate predicted values from model.
+cucumber_damage$predicted_fruits <- predict(pol_leaf_fruit_model,
+                                            newdata = cucumber_damage,
+                                            type = 'response')
+
+# Plot the true values.
+true_values <- ggplot(cucumber_damage, aes(x = leafdamage,
+                                       y = totalfruits,
+                                       color = pollination)) +
+  geom_point(alpha = 0.6, size = 2) + # Scatter plot of actual data.
+  geom_smooth(method = 'lm', se = FALSE, aes(linetype = pollination), linewidth = 1) + # Trend lines.
+  labs (title = 'True Total Fruits by Leaf Damage and Pollination',
+        x = 'Leaf Damage',
+        y = 'Total Fruit',
+        color = 'Pollination Type',
+        linetype = 'Pollination Type') +
+  scale_color_manual(values = c('HP' = 'blue', 'NP' = 'orange')) +
+  theme_minimal()
+
+true_values
+
+# Plot the results.
+results <- ggplot(cucumber_damage, aes(x = leafdamage,
+                                       y = predicted_fruits,
+                                       color = pollination)) +
+  geom_point(alpha = 0.6, size = 2) + # Scatter plot of actual data.
+  geom_smooth(method = 'lm', se = FALSE, aes(linetype = pollination), linewidth = 1) + # Trend lines.
+  labs (title = 'Predicted Total Fruits by Leaf Damage and Pollination',
+        x = 'Leaf Damage',
+        y = 'Predicted Total Fruit',
+        color = 'Pollination Type',
+        linetype = 'Pollination Type') +
+  scale_color_manual(values = c('HP' = 'blue', 'NP' = 'orange')) +
+  theme_minimal()
+
+results
+```
+\
+- Type I Anova: Pollination (p = 0.9657) has no significant effects on total fruits. Leaf damage (p = 2.67e-08) has a strongly significant effect on total fruits. The interaction between pollination and leaf damage (p = 0.5916) was not significant.\
+- Type III Anova: Same conclusions as the Type I Anova test.

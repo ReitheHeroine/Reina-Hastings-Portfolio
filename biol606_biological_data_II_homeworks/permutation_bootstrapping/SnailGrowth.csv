@@ -1,0 +1,225 @@
+Temperature,Crab,ShellGrowth.mg,DryTissueGrowth.mg
+ambient,crab,20.0915,3.7386429
+ambient,crab,24.728,4.0155528
+ambient,crab,6.182,0.0913932
+ambient,crab,24.728,2.3198928
+ambient,no crab,49.456,11.8247856
+ambient,no crab,117.458,18.2907108
+ambient,no crab,27.819,7.4669394
+ambient,no crab,86.548,15.9369048
+hot,crab,7.7275,-4.5775635
+hot,crab,6.182,0.8386332
+hot,crab,3.091,-0.4285134
+hot,crab,7.7275,-3.5141835
+hot,no crab,9.273,-2.8087602
+hot,no crab,85.0025,11.6964615
+hot,no crab,17.0005,0.7183563
+hot,no crab,32.4555,1.5934893
+ambient,crab,15.455,-0.475647
+ambient,crab,32.4555,0.2139693
+ambient,crab,7.7275,2.5786965
+ambient,crab,23.1825,1.5569895
+ambient,no crab,98.912,12.8433312
+ambient,no crab,27.819,6.6909594
+ambient,no crab,38.6375,4.5876225
+ambient,no crab,49.456,6.9102456
+hot,crab,20.0915,-0.5723571
+hot,crab,18.546,1.7111796
+hot,crab,7.7275,0.5668965
+hot,crab,12.364,-0.3920136
+hot,no crab,24.728,4.0442928
+hot,no crab,44.8195,7.2368757
+hot,no crab,30.91,5.055366
+hot,no crab,74.184,9.7761984
+ambient,crab,7.7275,2.2625565
+ambient,crab,24.728,2.9521728
+ambient,crab,37.092,4.3707792
+ambient,crab,20.0915,4.6008429
+ambient,no crab,38.6375,2.7195225
+ambient,no crab,30.91,3.819546
+ambient,no crab,26.2735,5.1233361
+ambient,no crab,44.8195,6.9782157
+hot,crab,9.273,-0.8831802
+hot,crab,10.8185,-0.6950769
+hot,crab,10.8185,-2.6493969
+hot,crab,4.6365,-2.5396101
+hot,no crab,12.364,3.3154464
+hot,no crab,9.273,2.3356998
+hot,no crab,41.7285,4.7913891
+hot,no crab,61.82,10.829232
+ambient,crab,,
+ambient,crab,34.001,-1.0924074
+ambient,crab,4.6365,1.3977699
+ambient,crab,24.728,-0.3529272
+ambient,no crab,18.546,2.6883396
+ambient,no crab,64.911,10.1133186
+ambient,no crab,21.637,3.6106062
+ambient,no crab,63.3655,14.8110153
+hot,crab,13.9095,0.7157697
+hot,crab,21.637,1.6850262
+hot,crab,,
+hot,crab,1.5455,-1.2488967
+hot,no crab,60.2745,10.4974287
+hot,no crab,10.8185,1.7190831
+hot,no crab,44.8195,6.6908157
+hot,no crab,69.5475,11.5398285
+ambient,crab,29.3645,1.0735827
+ambient,crab,52.547,5.8494522
+ambient,crab,20.0915,3.4799829
+ambient,crab,15.455,0.214113
+ambient,no crab,91.1845,13.8571347
+ambient,no crab,95.821,16.3757646
+ambient,no crab,40.183,14.7485058
+ambient,no crab,80.366,12.7415916
+hot,crab,7.7275,-1.3586835
+hot,crab,18.546,-0.9041604
+hot,crab,10.8185,0.0234231
+hot,crab,27.819,2.9260194
+hot,no crab,10.8185,-0.4364169
+hot,no crab,24.728,3.0096528
+hot,no crab,7.7275,0.2507565
+hot,no crab,20.0915,4.4571429
+ambient,crab,9.273,0.4101198
+ambient,crab,29.3645,3.9763227
+ambient,crab,23.1825,2.4479295
+ambient,crab,17.0005,3.9659763
+ambient,no crab,27.819,3.9031794
+ambient,no crab,57.1835,7.3334421
+ambient,no crab,26.2735,2.9678361
+ambient,no crab,41.7285,7.7516091
+hot,crab,6.182,-2.1503268
+hot,crab,,
+hot,crab,7.7275,1.4578365
+hot,crab,17.0005,0.8907963
+hot,no crab,43.274,-5.3094276
+hot,no crab,7.7275,1.3428765
+hot,no crab,9.273,2.4506598
+hot,no crab,7.7275,-0.6401835
+ambient,crab,17.0005,1.0919763
+ambient,crab,34.001,5.2591326
+ambient,crab,41.7285,5.1937491
+ambient,crab,12.364,-1.3116936
+ambient,no crab,66.4565,10.3876419
+ambient,no crab,131.3675,11.1317205
+ambient,no crab,29.3645,4.7235627
+ambient,no crab,37.092,5.6640792
+hot,crab,7.7275,0.7393365
+hot,crab,41.7285,4.1016291
+hot,crab,4.6365,-1.2750501
+hot,crab,4.6365,-1.4474901
+hot,no crab,88.0935,9.9459081
+hot,no crab,43.274,1.0995924
+hot,no crab,29.3645,4.7235627
+hot,no crab,9.273,-0.9981402
+ambient,crab,26.2735,1.7032761
+ambient,crab,58.729,4.3601454
+ambient,crab,13.9095,2.6126097
+ambient,crab,26.2735,1.0422561
+ambient,no crab,85.0025,12.6736215
+ambient,no crab,47.9105,5.9174223
+ambient,no crab,27.819,3.3283794
+ambient,no crab,34.001,9.5701326
+hot,crab,10.8185,0.3970431
+hot,crab,34.001,4.8567726
+hot,crab,6.182,-1.0294668
+hot,crab,13.9095,1.7791497
+hot,no crab,105.094,15.7512444
+hot,no crab,51.0015,6.4373289
+hot,no crab,13.9095,0.8019897
+hot,no crab,75.7295,13.7579817
+ambient,crab,18.546,1.4237796
+ambient,crab,23.1825,3.2813895
+ambient,crab,13.9095,0.5720697
+ambient,crab,21.637,4.2428862
+ambient,no crab,106.6395,22.1759277
+ambient,no crab,112.8215,11.4323409
+ambient,no crab,20.0915,6.7563429
+ambient,no crab,61.82,10.714272
+hot,crab,,
+hot,crab,,
+hot,crab,,
+hot,crab,,
+hot,no crab,,
+hot,no crab,,
+hot,no crab,17.0005,4.8281763
+hot,no crab,77.275,15.842925
+ambient,crab,26.2735,4.8934161
+ambient,crab,66.4565,6.6514419
+ambient,crab,17.0005,1.6667763
+ambient,crab,60.2745,11.5608087
+ambient,no crab,114.367,17.0235642
+ambient,no crab,23.1825,0.0912495
+ambient,no crab,9.273,-1.0843602
+ambient,no crab,86.548,12.5455848
+hot,crab,,
+hot,crab,,
+hot,crab,,
+hot,crab,,
+hot,no crab,54.0925,4.8017355
+hot,no crab,,
+hot,no crab,,
+hot,no crab,23.1825,1.8731295
+ambient,crab,10.8185,3.9895431
+ambient,crab,18.546,0.7052796
+ambient,crab,4.6365,1.3402899
+ambient,crab,24.728,-1.8186672
+ambient,no crab,108.185,20.783331
+ambient,no crab,102.003,21.6116178
+ambient,no crab,40.183,9.4890858
+ambient,no crab,112.8215,21.9799209
+hot,crab,12.364,1.7347464
+hot,crab,7.7275,-2.0771835
+hot,crab,9.273,0.8412198
+hot,crab,13.9095,-1.0661103
+hot,no crab,20.0915,2.8764429
+hot,no crab,41.7285,3.6992691
+hot,no crab,,
+hot,no crab,17.0005,1.1207163
+ambient,crab,21.637,3.2082462
+ambient,crab,35.5465,1.4523759
+ambient,crab,7.7275,-0.7264035
+ambient,crab,18.546,1.4237796
+ambient,no crab,86.548,15.8506848
+ambient,no crab,188.551,23.3222226
+ambient,no crab,108.185,20.639631
+ambient,no crab,105.094,15.5213244
+hot,crab,18.546,0.6190596
+hot,crab,,
+hot,crab,,
+hot,crab,,
+hot,no crab,,
+hot,no crab,,
+hot,no crab,,
+hot,no crab,,
+ambient,crab,37.092,5.9802192
+ambient,crab,29.3645,2.9416827
+ambient,crab,18.546,0.3891396
+ambient,crab,20.0915,5.0606829
+ambient,no crab,43.274,9.7790724
+ambient,no crab,74.184,12.5352384
+ambient,no crab,140.6405,22.7217003
+ambient,no crab,63.3655,10.8736353
+hot,crab,3.091,-1.0033134
+hot,crab,12.364,1.3611264
+hot,crab,3.091,-0.5147334
+hot,crab,7.7275,1.1416965
+hot,no crab,,
+hot,no crab,9.273,-0.2509002
+hot,no crab,,
+hot,no crab,15.455,0.875133
+ambient,crab,15.455,2.886933
+ambient,crab,15.455,2.254653
+ambient,crab,9.273,0.2089398
+ambient,crab,29.3645,4.0050627
+ambient,no crab,51.0015,10.3172289
+ambient,no crab,44.8195,7.4955357
+ambient,no crab,29.3645,3.8038827
+ambient,no crab,83.457,18.8945382
+hot,crab,21.637,2.8921062
+hot,crab,-58.729,-3.5266854
+hot,crab,21.637,3.8692662
+hot,crab,43.274,-0.3086676
+hot,no crab,21.637,1.6850262
+hot,no crab,4.6365,1.4552499
+hot,no crab,17.0005,3.4773963
+hot,no crab,66.4565,12.1695219

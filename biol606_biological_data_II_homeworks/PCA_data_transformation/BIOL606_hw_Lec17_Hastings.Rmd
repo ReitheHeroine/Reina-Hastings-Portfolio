@@ -1,0 +1,179 @@
+---
+title: "BIOL606_hw_Lec17_Hastings"
+output: html_document
+date: "2025-04-16"
+---
+
+```{r setup, include=FALSE}
+# Load libraries.
+library(readr)
+library(vegan)
+library(ggplot2)
+library(tidyverse)
+library(factoextra)
+library(e1071)
+library(ggfortify)
+
+rm(list=ls()) # Clear environment.
+```
+
+# Homework Lecture 18
+
+***Visualize the data distribution for each compound. Should you log transform the data?***
+
+Transformed data via transform_if_needed function.
+
+``` {r transform}
+# Function to apply transformation based on skewness.
+transform_if_needed <- function(x) {
+  sk <- skewness(x, na.rm = TRUE)
+
+  # If right-skewed and all values > 0, use log.
+  if (sk > 1 && all(x > 0, na.rm = TRUE)) {
+    return(log(x))
+  }
+  # If moderately skewed and all values ≥ 0, try square root.
+  else if (sk > 0.5 && all(x >= 0, na.rm = TRUE)) {
+    return(sqrt(x))
+  }
+  # Otherwise, return original.
+  return(x)
+}
+```
+
+
+```{r read_clean_data}
+trego <- read_csv('Trego2018.csv') # Read in data from local directory.
+
+# Convert ID variable to factor variable.
+trego$ID <- factor(trego$ID)
+
+# Convert categorical variable 'Maturity' to factor variable. Label factors for plotting purposes later.
+trego$Maturity <- factor(
+  trego$Maturity,
+  levels = c('I', 'M'),
+  labels = c('immature', 'mature')
+)
+
+# Check the structure of the data.
+glimpse(trego)
+
+# Check basic properties.
+summary(trego)
+
+# View the names and types of all columns.
+spec(trego)
+
+# Peek at 5 random rows.
+trego |>
+  slice_sample(n = 5)
+
+# Transform compound columns (3:35) if needed.
+trego_transformed <- trego
+trego_transformed[ , 3:35] <- lapply(trego[ , 3:35], transform_if_needed)
+
+# Convert the data to long format (maturity is column 2, compounds are columns 3:35) for plotting purposes.
+trego_long <- trego_transformed |>
+  pivot_longer(cols = 3:35, names_to = 'compound', values_to = 'abundance')
+
+# Split the list of unique compound names into chunks of 6 compounds each.
+compound_chunks <- split(
+  unique(trego_long$compound),
+  ceiling(seq_along(unique(trego_long$compound)) / 6)
+)
+
+# Loop through each chunk and generate a separate plot.
+for (chunk in compound_chunks) {
+  # Subset the data to only include the current chunk of compounds.
+  plt <- ggplot(trego_long[trego_long$compound %in% chunk, ], aes(x = abundance)) +
+    # Create histogram for the abundance of each compound.
+    geom_histogram(bins = 15, fill = 'steelblue', color = 'white') +
+    # Use facet_wrap to create a subplot for each compound in the chunk.
+    facet_wrap(~ compound, scales = 'free', ncol = 2) +
+    theme_minimal() + 
+    # Add plot labels.
+    labs(
+      title = 'Distribution of Halogenated Organic Compounds',
+      x = 'Relative Abundance',
+      y = 'Frequency'
+    )
+  
+  # Print the plot for the current chunk.
+  print(plt)
+}
+```
+
+***Perform a PCA (i.e. PCoA using Euclidean distance).***
+
+``` {r PCA}
+# Select compound data only for PCA (columns 3 to 35).
+compound_data <- trego_transformed[, 3:ncol(trego_transformed)]
+
+# Perform PCA - center and scale the variables.
+compound_pca <- prcomp(compound_data, center = TRUE, scale. = TRUE)
+
+# Attach Maturity info for plotting.
+autoplot(compound_pca, data = trego_transformed, colour = 'Maturity') +
+  theme_minimal() +
+  labs(title = 'PCA of Halogenated Compounds in Dolphins')
+```
+
+***Show the relationship between the dolphins and the compounds using a biplot.***
+
+``` {r bi_plot}
+autoplot(
+  compound_pca,
+  data = trego_transformed,
+  colour = 'Maturity',
+  loadings = TRUE,
+  loadings.label = TRUE,
+  loadings.label.size = 3
+) +
+  labs(title = 'PCA Biplot: Dolphins and Halogenated Compounds',
+       colour = 'Maturity') +
+  theme_minimal()
+```
+
+***Find the most important compounds with the help of a contribution plot (fviz_contrib), subset the data and re-run PCA with only those compounds that fall above the red line on the contribution plot.***
+
+``` {r con_plot}
+# Plot shows how much each compound contributes to variation in PC1.- Red line marks the average expected contribution — compounds above it contribute more than average.
+fviz_contrib(compound_pca, choice = 'var', axes = 1, top = 20) +
+  labs(title = 'Contribution of Compounds to PC1')
+
+fviz_contrib(compound_pca, choice = 'var', axes = 2, top = 20) +
+  labs(title = 'Contribution of Compounds to PC2')
+
+# Manually identify important compounds in the plots.
+important_vars <- c('PBB', 'TCPM', 'Unknown.8', 'Methylsulfonyl.PCB', 'Mirex.related', 'Methylenebistrichloroanisole', 'TCPMOH', 'Unknown.7', 'Unknown.4', 'PBDE', 'MeO.BDE', 'Dichlorobenzophenone', 'Chlordane.related', 'Brominated.anisole', 'Brominated.indole', 'HCH.related', 'Chlorobenzaldehyde', 'Heptachlor.related', 'Unknown', 'DMBP', 'Unknown.5')
+
+# Subset data to only include compounds important to PC1 or PC2.
+compound_data_top <- trego_transformed[, important_vars]
+
+# Re-run PCA.
+compound_pca_top <- prcomp(compound_data_top, center = TRUE, scale. = TRUE)
+
+# Re-create a PCA biplot using only the top contributing compounds.
+fviz_pca_biplot(
+  compound_pca_top,
+  geom.ind = 'point',
+  col.ind = trego_transformed$Maturity,  # Color points by dolphin maturity class (immature vs mature).
+  palette = c('#E69F00', '#56B4E9'),
+  addEllipses = TRUE, # Add ellipses to group by maturity.
+  ellipse.type = 'convex',
+  label = 'var',
+  col.var = 'black',
+  arrowsize = 0, # Hide arrows.
+  repel = TRUE # Use repelling to prevent overlapping text labels.
+) +
+  labs(title = 'PCA Biplot: Top Contributing Compounds Only')
+
+```
+
+***Based on the final biplot, are different compounds associated more with immature than mature dolphins? Write your answer in the R code as a comment or in text outside the R code chunk.***
+
+Based on the PCA biplot, different compounds appear to be associated with the two dolphin maturity classes. Immature dolphins tend to cluster on the left side of the first principal component (Dim1), and are closely associated with compounds such as MeO.BDE, methylene bis trichloroanisol, and brominated indole.
+
+In contrast, mature dolphins cluster on the right side of Dim1 and show stronger associations with compounds like chlorobenzaldehyde, Mirex-related compounds, TCPM, and several unknown halogenated organics.
+
+This clear separation suggests that the chemical profiles of immature and mature dolphins differ.

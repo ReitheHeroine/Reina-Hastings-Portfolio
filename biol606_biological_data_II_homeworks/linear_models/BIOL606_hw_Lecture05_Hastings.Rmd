@@ -1,0 +1,174 @@
+---
+title: "BIOL606_hw_Lecture05_Hastings"
+output: html_document
+date: "2025-02-10"
+---
+```{r setup, include=FALSE}
+# Load libraries.
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(ggfortify)
+
+rm(list=ls()) # Clear environment.
+```
+
+## Homework Lecture 05\
+**Question**: Is total male flowers affected by number of leaves AND pollination treatment (in a single linear model)?\
+\
+**Hypothesis**: Based on the results of previous t-tests on flower number vs pollination and the lack of information I have on the relationship between number of leaves and total male flowers, I believe that total male flowers are not affected by the number of leaves and pollination treatment.\
+\
+``` {r linear_model}
+# Load datasets.
+flowercounts <- read.csv('lecture4_flowercounts.csv') # Load in lecture4_flowercounts.csv data set.
+glimpse(flowercounts)
+
+cucumberdamage <- read.csv('lecture4_cucumberdamage.csv') # Load in lecture4_cucumberdamage.csv data set.
+glimpse(cucumberdamage)
+
+cucumberdamage$plant <- as.factor(cucumberdamage$plant) # Encode flowercounts$plant variable into a categorical variable since it represents individual plant IDs.
+
+flowercounts$plant <- as.factor(flowercounts$plant) # Encode flowercounts$plant variable into a categorical variable since it represents individual plant IDs.
+
+male_counts <- flowercounts %>%
+  filter(!is.na(plant)) %>% # Remove rows with plant variable is NA.
+  group_by(plant) %>% # Group the data by the 'plant' column.
+  summarise(total_male_flowers = sum(M, na.rm = TRUE)) # For each plant, sum up 'M', ignoring NAs.
+
+male_counts %>% slice_sample(n = 10) # Check a random 10 rows to check new variable.
+
+cucumberdamage$pollination <- as.factor(cucumberdamage$pollination) # Encode cucumberdamage$pollination variable into a categorical variable.
+
+cucumberdamage <- left_join(cucumberdamage, (male_counts %>% select(plant, total_male_flowers)), by = 'plant') # Join total_male$total_male_flowers to cucumberdamage using plant variable as the common key column.
+
+cucumberdamage %>% slice_sample(n = 10) # Check a random 10 rows to check new variable.
+
+# Create general linear model.
+model <- lm(total_male_flowers ~ num_leaves + pollination, data = cucumberdamage)
+
+autoplot(model)
+
+anova(model)
+
+summary(model)
+
+# Plot results.
+results = ggplot(cucumberdamage, aes(x = num_leaves, y = total_male_flowers, color = pollination)) +
+  geom_point(size = 3, alpha = 0.7) + # Scatter plot with transparency, colored by pollination type.
+  geom_smooth(method = 'lm', se = TRUE, color = 'red') + # Regression line.
+  scale_color_manual(
+    name = 'Pollination Type', # Pollination type legend.
+    values = c('HP' = 'blue', 'NP' = 'orange'),
+    labels = c('HP' = 'Hand Pollination', 'NP' = 'Natural Pollination')) +
+  labs(title = 'Total Male Flowers vs Number of Leaves',
+       x = 'Number of Leaves',
+       y = 'Total Male Flowers',
+       color = 'Pollination Type') +
+  theme_minimal()
+
+results
+```
+\
+\
+Looking at the autoplot of the model:\
+- The Residual vs Fitted plot does not demonstrate random scatter implying non-linearity in the data.\
+- The Normal Q-Q plot demonstrates a normality of residuals.\
+- The Scale-Location plot demonstrates consistent variance.\
+- The Residuals vs Leverage plot demonstrates that most points have low leverage.\
+\
+Looking at the ANOVA analysis of the model:\
+- Number of leaves has a strong effect on the number of male flowers. (p = 2.296e-15)\
+- Pollination type does not have a strong effect on the number of male flowers. (p = 0.5421)\
+- The Sum Sq value indicates unexplained variation remains.\
+\
+Looking at the summart of the model:\
+- The extreme residuals mean there might be a lot of deviation/outliers.\
+- Number of leaves is highly predictive of number of male flowers, for each additional leaf, the number of male flowers increases by ~22.37.\
+- High RSE suggests the model has a good amount of unexplained variability. The low R^2 value also suggests this (other explanatory factors may be missing).\
+- The F-stat = 37.27, p = 1.871e-14 means the model explains a good amount of variance.\
+\
+**Conclusion:** The total number of male flowers is affected by the number of leaves but not by the pollination treatment.\
+
+# Beckerman Chapter 7\
+- GLMs are used for non-normal data, such as count or proportion data. Count data is discrete and bounded at zero.\
+- These models extend linear regression by allowing the response variable to follow distributions other than normal (e.g., Poisson, binomial).\
+\
+- Family: Specifies the probability distribution of the response variable.\
+- Linear predictor: Describes how explanatory variables influence the response variable.\
+- Link function: Connects the linear predictor to the expected value of the response variable.\
+\
+- The Poisson distribution is commonly used for count data.\
+- The variance in Poisson-distributed data increases with the mean.\
+- Traditional linear regression is not suitable for count data due to the possibility of negative predictions.\
+\
+Diagnostics:\
+- Akaike Information Criterion (AIC) is used for model selection (lower AIC = better model fit).\
+- Over-dispersion occurs when the variance is larger than expected under a Poisson model.\
+\
+``` {r beckerman_ch_7}
+# Load libraries.
+library(ggplot2)
+library(dplyr)
+library(MASS)
+
+soay <- read.csv('SoaySheepFitness.csv') # Load in SoaySheepFitness.csv data set.
+
+glimpse(soay)
+
+# Create a scatter plot with fitted lines.
+ggplot(soay, aes(x = body.size, y = fitness)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE) +
+  geom_smooth(span = 1, colour = 'red', se = FALSE) +
+  xlab('Body mass (kg)') + ylab('Lifetime fitness')
+
+# Poisson GLM.
+soay.glm <- glm(fitness ~ body.size, data = soay, family = poisson)
+
+# Alternative explicit link function specification.
+soay.glm <- glm(fitness ~ body.size, data = soay, family = poisson(link = 'log'))
+
+autoplot(soay.glm)
+
+anova(soay.glm, test = 'Chisq')
+
+summary(soay.glm)
+
+# Generate new data for prediction.
+min.size <- min(soay$body.size)
+max.size <- max(soay$body.size)
+new.x <- expand.grid(body.size = seq(min.size, max.size, length = 1000))
+
+# Predict values with standard errors.
+new.y <- predict(soay.glm, newdata = new.x, se.fit = TRUE)
+new.y <- data.frame(new.y)
+
+# Combine predictions.
+addThese <- data.frame(new.x, new.y)
+
+# Back-transform predictions from log scale to response scale.
+addThese <- mutate(addThese,
+                   fitness = exp(fit),
+                   lwr = exp(fit - 1.96 * se.fit),
+                   upr = exp(fit + 1.96 * se.fit))
+
+# Final plot with fitted GLM and confidence intervals.
+ggplot(soay, aes(x = body.size, y = fitness)) +
+  geom_point(size = 3, alpha = 0.5) +
+  geom_smooth(data = addThese, aes(ymin = lwr, ymax = upr), stat = 'identity') +
+  theme_bw()
+
+# Checking for over-dispersion.
+dispersion_index <- summary(soay.glm)$deviance / summary(soay.glm)$df.residual
+print(dispersion_index) # Should be close to 1.
+
+# Quasi-Poisson model.
+soay.quasi <- glm(fitness ~ body.size, data = soay, family = quasipoisson)
+
+anova(soay.quasi, test = 'F')
+
+# Negative binomial model.
+soay.nb <- glm.nb(fitness ~ body.size, data = soay)
+
+summary(soay.nb)
+```

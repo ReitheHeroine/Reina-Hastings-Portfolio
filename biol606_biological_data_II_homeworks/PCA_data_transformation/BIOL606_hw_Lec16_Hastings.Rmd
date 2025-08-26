@@ -1,0 +1,123 @@
+---
+title: "BIOL606_hw_Lec16_Hastings"
+output: html_document
+date: "2025-04-15"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+# Load libraries.
+library(tidyverse)
+library(ggfortify)
+library(GGally)
+library(ggrepel)
+
+rm(list=ls()) # Clear environment.
+```
+
+Write code to load the sparrow data.
+
+``` {r read_data}
+# Read in bumpus data while automatically guessing column types.
+bumpus <- read_table(file='bumpus.dat.txt', col_types=cols())
+
+# Convert categorical variable 'survive' to factor variable. Label factors for plotting purposes later.
+bumpus$survive <- factor(
+  bumpus$survive,
+  levels = c(0, 1),
+  labels = c('died', 'survived')
+)
+
+# Convert whole number variables to integer type.
+bumpus<- bumpus |>
+  mutate(
+    across(c(length, alar), as.integer)
+  )
+
+# Check the structure of the data.
+glimpse(bumpus)
+
+# Check basic properties.
+summary(bumpus)
+
+# View the names and types of all columns.
+spec(bumpus)
+
+# Peek at 5 random rows.
+bumpus |>
+  slice_sample(n = 5)
+```
+
+#### Question 1: Produce a pairs plot of the various bird traits.
+Pairs plot is a matrix of scatterplots showing every pairwise relationship between variables. It is typically used to visually check correlations, spot clusters, and/or patterns.
+
+``` {r pairs_plot}
+# Pairs plot of bird traits, excluding the response column.
+bumpus |>
+  select(-survive) |>
+  ggpairs(
+    title = 'Pairs Plot of Bumpus Bird Traits'
+  )
+```
+
+#### Question 2: Fit a PCA, using centered and scaled trait data. Show the summary output for the PCA.
+PCA transforms a dataset with many correlated variables (like bird body measurements) into a smaller number of new, uncorrelated variables called principal components (PCs).
+
+``` {r PCA}
+# Perform PCA on the trait data, with centering and scaling.
+bumpus_pca <- prcomp(
+  bumpus[, -1],
+  center = TRUE,
+  scale. = TRUE
+)
+
+# Display summary of PCA results.
+summary(bumpus_pca)
+```
+
+#### Question 3: Produce a scree plot.
+A scree plot is a line plot showing how much variance each principal component explains. It can help us decided how many PCs to keep.
+``` {r scree_plot}
+# Create a scree plot.
+screeplot(
+  bumpus_pca,
+  type = 'lines',
+  main = 'Scree Plot of PCA - Bumpus Traits'
+)
+```
+
+#### Question 4: Produce a biplot using the ggfortify package autoplot() function, showing the birds colored by survival, and arrows showing the variables in the PCA.
+A biplot is a PCA scatterplot that shows observations and original variables to visualize how different traits contribute to differences among observations.
+
+``` {r biplot}
+# Create PCA scores for individuals.
+scores_df <- as.data.frame(bumpus_pca$x)
+scores_df$survive <- bumpus$survive
+
+# Create loadings (arrows) scaled to match autoplot's default behavior.
+loadings_df <- as.data.frame(bumpus_pca$rotation[, 1:2])
+loadings_df$trait <- rownames(loadings_df)
+loadings_df$PC1 <- loadings_df$PC1 * 2
+loadings_df$PC2 <- loadings_df$PC2 * 2
+
+# Plot scores manually.
+ggplot(scores_df, aes(x = PC1, y = PC2, color = survive)) +
+  geom_point(size = 2) +
+  # Arrows.
+  geom_segment(data = loadings_df,
+               aes(x = 0, y = 0, xend = PC1, yend = PC2),
+               arrow = arrow(length = unit(0.25, 'cm')),
+               color = 'red') +
+  # Labels.
+  geom_text_repel(data = loadings_df,
+                  aes(x = PC1, y = PC2, label = trait),
+                  color = 'blue',
+                  size = 3) +
+  labs(
+    title = 'PCA Biplot of Bumpus Bird Traits',
+    x = paste0('PC1 (', round(summary(bumpus_pca)$importance[2, 1] * 100, 2), '%)'),
+    y = paste0('PC2 (', round(summary(bumpus_pca)$importance[2, 2] * 100, 2), '%)')
+  ) +
+  theme_minimal()
+```

@@ -1,0 +1,99 @@
+---
+title: "BIOL606_hw_Lecture18_Hastings"
+output: html_document
+date: "2025-04-23"
+---
+
+```{r setup, include=FALSE}
+# Load libraries.
+library(readr)
+library(vegan)
+library(ggplot2)
+library(tidyverse)
+
+rm(list=ls()) # Clear environment.
+```
+
+# Homework Lecture 18 
+
+Run a NMDS on the bird data (macnally_full2.csv, leave out columns 1&2, SITE + HABITAT), using Bray-Curtis as the distance metric with the vegan metaMDS function.
+
+```{r load_prep_data}
+# Load dataset.
+mac <- read_csv("macnally_full2.csv") # Load in data set.
+
+# Factorize SITE and HABITAT variables.
+mac[, c(1, 2)] <- lapply(mac[, c(1, 2)], as.factor)
+
+# Check the structure of the data.
+glimpse(mac)
+
+# Peek at 5 random rows.
+mac |>
+  slice_sample(n = 5)
+
+# Isolate habitat grouping variable for visualizations.
+habitat <- mac[, 2]  # Column 2 is habitat type
+
+# Remove SITE 
+bird_data <- mac[, -c(1,2)]
+```
+
+**Tasks:**
+
+Generate a NMDS ordination plot showing the sites only (no species arrows), and draw ellipsoid hulls around each of the 6 habitat types to show how habitat maps onto the ordination.
+
+Color the site points by HABITAT type (column 2 of data frame)
+
+Use the ordiellipse() function to draw an ellipse enclosing each Habitat group. The groups argument should be defined using the HABITAT data in column 2 of the data frame.
+
+Include a legend in the plot to show which point color maps to which habitat type.
+
+```{r NMDS}
+# Perform NMDS using Bray-Curtis distance.
+set.seed(420)  # For reproducibility.
+mac_nmds <- metaMDS(bird_data, distance = "bray", k = 2, trymax = 100)
+
+# Check stress.
+mac_nmds$stress
+
+# Assign colors to each habitat type.
+habitat_colors <- c(
+  'Gippsland manna gum' = 'red',
+  'montane forest' = 'blue',
+  'woodland' = 'green',
+  'box-ironbark' = 'purple',
+  'river redgum' = 'orange',
+  'mixed forest' = 'brown'
+)
+
+# Confirm that mac_nmds site scores align with mac_data rows.
+identical(rownames(bird_data), rownames(mac_nmds$points))  # Should be TRUE.
+
+# Generate NMDS ordination plot - sites only.
+plot(mac_nmds, type = 'n')
+points(mac_nmds, display = 'sites', pch = 19, col = habitat_colors)  # Colored points by habitat.
+title('NMDS Ordination of Bird Sites Colored by Habitat')
+
+# Draw ellipses around each habitat group in the NMDS ordination plot.
+ordiellipse(mac_nmds,
+  groups = mac$HABITAT,
+  kind = 'ehull', # Ellipses are based on covariance since groups are small with outliers.
+  conf = 0.95, # Confidence level.
+  col = habitat_colors,
+)
+
+# Add a legend to the NMDS plot to indicate which colors correspond to each habitat type.
+legend(
+  'topright',
+  legend = levels(mac$HABITAT),
+  col = habitat_colors,
+  pch = 19, # Use solid circle symbols.
+  title = 'Habitat Type',
+  cex = 0.8 # Size scaling for the legend text.
+)
+```
+
+***Based on your plot, describe which (if any) of the habitats differ in community composition.***
+
+All the sites appear to have fairly compact and distinct ellipses. All of the habitas appear to differ in community composition - some more than others.

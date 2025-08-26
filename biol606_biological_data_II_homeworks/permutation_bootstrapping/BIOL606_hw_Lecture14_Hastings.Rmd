@@ -1,0 +1,152 @@
+---
+title: "BIOL606_hw_Lecture14_Hastings"
+output: html_document
+date: "2025-04-08"
+---
+
+```{r setup, include=FALSE}
+# Load libraries.
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(ggfortify)
+library(lme4)
+library(car)
+library(MuMIn)
+library(plotly)
+library(boot)
+
+rm(list=ls()) # Clear environment.
+
+snail <- read_csv('SnailGrowth.csv') # Read in data from local directory.
+
+# Check the structure of the data.
+glimpse(snail)
+
+# Check basic properties.
+summary(snail)
+
+# View the names and types of all columns.
+spec(snail)
+
+# Peek at 5 random rows.
+snail |>
+  slice_sample(n = 5)
+```
+
+# Task 1
+
+### Question 1: Using only the data for the ‘hot’ temperature treatment, compare the shell growth of the Crab and No-Crab treatment levels, using a permutation routine.
+
+Your code should load the data, carry out 9999 permutations (+1 original value), calculate the permuted difference in medians, and 95% confidence interval derived from the permuted differences.
+
+```{r shell_growth}
+# Subset the data to only include the 'hot' temperature treatment and remove rows with missing ShellGrowth.mg values.
+hot_snail <- snail |>
+  filter(Temperature == 'hot', !is.na(ShellGrowth.mg))
+
+# Set the seed for reproducibility.
+set.seed(472)
+
+# Set up the number of permutations (9999 permutations + 1 observed value) and pre-allocate a vector.
+n_perms <- 9999
+perm_diffs <- numeric(n_perms + 1)
+
+# Compute the observed difference in medians (actual group difference in the unshuffled data).
+perm_diffs[1] <- with(hot_snail,
+  median(ShellGrowth.mg[Crab == 'crab']) -
+    median(ShellGrowth.mg[Crab == 'no crab'])
+)
+
+# Create the null distribution by randomly shuffling the shell growth values.
+# This simulates what kind of differences we would expect if there were no treatment effect.
+for (i in 2:(n_perms + 1)) {
+  shuffled_growth <- sample(hot_snail$ShellGrowth.mg)  # Shuffle response variable.
+  
+  # Recalculate the difference in medians for the shuffled data.
+  perm_diffs[i] <- with(hot_snail,
+    median(shuffled_growth[Crab == 'crab']) -
+      median(shuffled_growth[Crab == 'no crab'])
+  )
+}
+
+# Calculate a 95% confidence interval from the permutation distribution.
+conf_int <- quantile(perm_diffs, probs = c(0.025, 0.975))
+
+# Compute the two-tailed p-value.
+# This is the proportion of permuted differences as or more extreme than the observed one.
+p_val <- mean(abs(perm_diffs) >= abs(perm_diffs[1]))
+
+# Display the results.
+cat('Observed difference in medians:', perm_diffs[1], '\n')
+cat('95% confidence interval:', conf_int[1], 'to', conf_int[2], '\n')
+cat('Two-tailed p-value:', p_val, '\n')
+
+# Plot the null distribution with the observed difference marked.
+hist(perm_diffs,
+     main = 'Permutation Distribution of Median Difference\nShell Growth (Hot Only)',
+     xlab = 'Difference in Medians (Crab - No Crab)',
+     col = 'lightblue',
+     border = 'white')
+abline(v = perm_diffs[1], col = 'red', lwd = 2, lty = 2)
+```
+
+### Question 2: Is the observed difference in median growth of the two groups significantly different than what we would expect by random chance (i.e. if the two groups weren’t different)?
+
+Yes, the observed difference in median shell growth between Crab and No-Crab treatments under hot temperature is significantly different than what we would expect by random chance.
+
+-   Observed difference: –13.91 mg\
+-   95% CI from permutation: –7.73 to 7.73\
+-   Two-tailed p-value: 0.0002\
+
+The observed value lies outside the 95% confidence interval and the p-value is far less than 0.05.
+
+We reject the null hypothesis.
+
+# Task 2
+
+### Question 3: Use the boot() and boot.ci() functions to estimate the mean shell growth and BCa 95% confidence intervals for the Ambient temperature, No-Crab treatment group, based on 9999 resamples.
+
+Use the boot() and boot.ci() functions to estimate the mean shell growth and BCa 95% confidence intervals for the Ambient temperature, No-Crab treatment group, based on 9999 resamples.
+
+```{r boot}
+# Subset the data for one specific treatment group.
+# - Temperature is 'ambient'
+# - No crab exposure
+# - Shell growth measurements are not missing
+ambient_nocrab <- snail |>
+  filter(
+    Temperature == 'ambient',
+    Crab == 'no crab',
+    !is.na(ShellGrowth.mg)
+  )
+
+# Define the function that calculates the mean to be used in the bootstrap.
+mean_fun <- function(data, indices) {
+  # Use the indices to randomly sample from the data (with replacement).
+  resampled_data <- data[indices]
+  
+  # Calculate and return the mean of this resample and store as part of the bootstrap distribution.
+  return(mean(resampled_data))
+}
+
+# Run the bootstrap. Resample the data 9999 times and applies the mean_fun() each time.
+set.seed(472)  # Set a random seed.
+boot_result <- boot(
+  data = ambient_nocrab$ShellGrowth.mg,  # The shell growth values to sample from.
+  statistic = mean_fun,                  # Function to compute the mean.
+  R = 9999                               # Number of resamples (excluding the original sample).
+)
+
+# View the results of the bootstrap procedure.
+boot_result
+
+# Calculate a 95% confidence interval using the BCa method.
+boot_ci <- boot.ci(
+  boot.out = boot_result,  # The output from the boot() function.
+  type = 'bca'             # Request the BCa interval.
+)
+
+# Print the BCa confidence interval.
+boot_ci
+```
