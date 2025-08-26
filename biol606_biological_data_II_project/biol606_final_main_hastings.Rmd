@@ -1,8 +1,13 @@
 ---
-title: 'BIOL606_Midterm_3_Hastings'
+title: 'BIOL606_Final_Hastings'
 output: html_document
 date: '2025-05-01'
 ---
+
+'''Main file for final project for BIOL606 Biological Data II.'''
+
+__author__ = 'Reina Hastings'
+__email__ = 'reinahastings13@gmail.com'
 
 ```{r setup, message=FALSE, warning=FALSE, results='hide'}
 rm(list=ls()) # Clear environment.
